@@ -261,7 +261,6 @@ public class AlienEntity extends Entity {
 		// by we can use it to drive the animation, however
 		// its the not the prettiest solution
 		lastFrameChange += delta;
-		timeElapsed += delta;
 
 		// if we need to change the frame, update the frame number
 		// and flip over the sprite in use

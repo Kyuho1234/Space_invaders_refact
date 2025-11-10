@@ -29,10 +29,6 @@ import org.newdawn.spaceinvaders.settings.SettingsDialog;
 import org.newdawn.spaceinvaders.settings.SettingsManager;
 import org.newdawn.spaceinvaders.firebase.FirebaseManager;
 import org.newdawn.spaceinvaders.items.ItemManager;
-import org.newdawn.spaceinvaders.settings.SettingsDialog;
-import org.newdawn.spaceinvaders.settings.SettingsManager;
-import org.newdawn.spaceinvaders.firebase.FirebaseManager;
-import org.newdawn.spaceinvaders.items.ItemManager;
 
 
 /**
@@ -1238,7 +1234,12 @@ public class Game extends Canvas {
 			drawGame(g);
 
 			handlePlayerInput();
-			waitForNextFrame();
+
+			// we want each frame to take 10 milliseconds, to do this
+			// we've recorded when we started the frame. We add 10 milliseconds
+			// to this and then factor in the current time to give
+			// us our final value to wait for
+			SystemTimer.sleep(lastLoopTime + 10 - SystemTimer.getTime());
 		}
 	}
 
@@ -1355,179 +1356,162 @@ public class Game extends Canvas {
 	 * Draw stage selection screen
 	 */
 	private void drawStageSelectScreen(Graphics2D g) {
-				// 1. 배경 어둡게 처리
-				g.setColor(new Color(0, 0, 0, 200));
-				g.fillRect(0, 0, 800, 600);
+		// 1. 배경 어둡게 처리
+		g.setColor(new Color(0, 0, 0, 200));
+		g.fillRect(0, 0, 800, 600);
 
-				// 2. 제목 그리기
-				String title = "SELECT NEXT STAGE";
-				g.setColor(Color.WHITE);
-				g.setFont(new Font("Arial", Font.BOLD, 36));
-				FontMetrics fmTitle = g.getFontMetrics();
-				g.drawString(title, (800 - fmTitle.stringWidth(title)) / 2, 100);
+		// 2. 제목 그리기
+		String title = "SELECT NEXT STAGE";
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Arial", Font.BOLD, 36));
+		FontMetrics fmTitle = g.getFontMetrics();
+		g.drawString(title, (800 - fmTitle.stringWidth(title)) / 2, 100);
 
-				// 3. 스테이지 버튼 그리기 (1단계 ~ 5단계)
-				int btnSize = 60;
-				int gap = 20;
-				int totalStages = 5;
-				int totalW = totalStages * btnSize + (totalStages - 1) * gap;
-				int startX = (800 - totalW) / 2;
-				int startY = 200;
+		// 3. 스테이지 버튼 그리기 (1단계 ~ 5단계)
+		int btnSize = 60;
+		int gap = 20;
+		int totalStages = 5;
+		int totalW = totalStages * btnSize + (totalStages - 1) * gap;
+		int startX = (800 - totalW) / 2;
+		int startY = 200;
 
-				for (int stage = 1; stage <= totalStages; stage++) {
-					int x = startX + (stage - 1) * (btnSize + gap);
+		for (int stage = 1; stage <= totalStages; stage++) {
+			int x = startX + (stage - 1) * (btnSize + gap);
 
-					// 선택된 스테이지에 따라 색상 변경
-					if (stage == selectedStage) {
-						// 1. 선택된 스테이지: 노란색
-						g.setColor(Color.YELLOW);
-					} else if (stage <= maxClearedStage || stage == maxClearedStage + 1) {
-						// 2. 클리어했거나, 현재 선택 가능한 스테이지 (하늘색 -> 초록색으로 통일)
-						//    stage <= currentStage: 이미 클리어한 스테이지
-						//    stage == currentStage + 1: 현재 클리어 가능한 다음 스테이지
-						g.setColor(Color.GREEN);
-					} else {
-						// 3. 잠긴 스테이지: 회색
-						g.setColor(Color.LIGHT_GRAY);
-					}
-
-					// 버튼 사각형
-					g.fillRect(x, startY, btnSize, btnSize);
-					g.setColor(Color.BLACK);
-					g.drawRect(x, startY, btnSize, btnSize);
-
-					// 버튼 텍스트 (스테이지 번호)
-					String stageNum = String.valueOf(stage);
-					g.setColor(Color.BLACK);
-					g.setFont(new Font("Arial", Font.BOLD, 24));
-					FontMetrics fmBtn = g.getFontMetrics();
-					g.drawString(stageNum, x + (btnSize - fmBtn.stringWidth(stageNum)) / 2, startY + fmBtn.getAscent() + 10);
-
-					// "Hard" 또는 잠금 상태 표시 (선택 사항)
-					// 💡 [필수 수정] 잠금 조건도 maxClearedStage 기준으로 변경
-					if (stage > maxClearedStage + 1) {
-						g.setColor(new Color(0, 0, 0, 150));
-						g.fillRect(x, startY, btnSize, btnSize);
-						g.setColor(Color.RED);
-						g.drawString("LOCK", x + 5, startY + 40);
-					}
-
-				}
-
-				// 안내 메시지
-				String info = "Use Left/Right Arrows to select, Enter to start.";
-				g.setColor(Color.WHITE);
-				g.setFont(new Font("Arial", Font.PLAIN, 18));
-				FontMetrics fmInfo = g.getFontMetrics();
-				g.drawString(info, (800 - fmInfo.stringWidth(info)) / 2, 500);
-
-				// 폰트와 색상 복구 (안전성)
-				g.setColor(Color.white);
-				g.setFont(new Font("Arial", Font.PLAIN, 12));
-
-			} else if (pausePromptActive) {
-				// dim background
-				g.setColor(new Color(0, 0, 0, 160));
-				g.fillRect(0, 0, 800, 600);
-				g.setColor(Color.white);
-				String pts = String.format("%03d", Math.max(0, score));
-				String l1 = "여기서 멈춘다면 " + pts + " 포인트를 얻습니다.";
-				String l2 = "메인메뉴로 나가려면 ESC, 계속 플레이하려면 SPACE를 누르십시오.";
-				FontMetrics fm = g.getFontMetrics();
-				g.drawString(l1, (800 - fm.stringWidth(l1)) / 2, 260);
-				g.drawString(l2, (800 - fm.stringWidth(l2)) / 2, 300);
-			} else if (waitingForKeyPress) { // 🚀 이 부분이 메시지를 그리는 곳입니다.
-				g.setColor(Color.white);
-				g.drawString(message, (800 - g.getFontMetrics().stringWidth(message)) / 2, 250);
-				g.drawString("Press any key", (800 - g.getFontMetrics().stringWidth("Press any key")) / 2, 300);
-
-				String mainMessage = message; // "Oh no..." 또는 "Congratulations!"
-				FontMetrics fm = g.getFontMetrics();
-
-				// 1. 주 메시지 출력
-				g.drawString(mainMessage, (800 - fm.stringWidth(mainMessage)) / 2, 250);
-				g.drawString("Press any key", (800 - fm.stringWidth("Press any key")) / 2, 300);
-
-				// 2. 최고 점수 안내문 표시
-				if (newHighScoreAchieved) {
-					g.setColor(Color.YELLOW);
-					g.setFont(new Font("Arial", Font.BOLD, 30));
-
-					// message 변수가 이미 설정된 상태이므로, 'score' 변수는 아직 초기화되지 않은
-					// 최종 점수 값을 가지고 있습니다. (notifyDeath/Win에서 score=0 전에 호출됨)
-					String highMsg = "🎉 New High Score! (" + finalScore + ")";
-
-					FontMetrics fm30 = g.getFontMetrics();
-					// Y 좌표 400에 출력 (기존 메시지 아래)
-					g.drawString(highMsg, (800 - fm30.stringWidth(highMsg)) / 2, 400);
-				}
-
-				// 폰트와 색상 복구 (선택 사항이지만 안전합니다)
-				g.setColor(Color.white);
-				g.setFont(new Font("Arial", Font.PLAIN, 12)); // 원래 폰트로 복구 (Game.java에서 기본 폰트 설정이 필요할 수 있음)
+			// 선택된 스테이지에 따라 색상 변경
+			if (stage == selectedStage) {
+				// 1. 선택된 스테이지: 노란색
+				g.setColor(Color.YELLOW);
+			} else if (stage <= maxClearedStage || stage == maxClearedStage + 1) {
+				// 2. 클리어했거나, 현재 선택 가능한 스테이지 (하늘색 -> 초록색으로 통일)
+				//    stage <= currentStage: 이미 클리어한 스테이지
+				//    stage == currentStage + 1: 현재 클리어 가능한 다음 스테이지
+				g.setColor(Color.GREEN);
+			} else {
+				// 3. 잠긴 스테이지: 회색
+				g.setColor(Color.LIGHT_GRAY);
 			}
 
+			// 버튼 사각형
+			g.fillRect(x, startY, btnSize, btnSize);
+			g.setColor(Color.BLACK);
+			g.drawRect(x, startY, btnSize, btnSize);
 
-			// finally, we've completed drawing so clear up the graphics
-			// and flip the buffer over
-			drawLeftItemsPanel((Graphics2D) g);
-			// =================================================================
-			// === 2P FEATURE: Changed call to the new HP bar drawer ===
-			// =================================================================
-			drawPlayerHPBars((Graphics2D) g);
-			g.dispose();
-			strategy.show();
+			// 버튼 텍스트 (스테이지 번호)
+			String stageNum = String.valueOf(stage);
+			g.setColor(Color.BLACK);
+			g.setFont(new Font("Arial", Font.BOLD, 24));
+			FontMetrics fmBtn = g.getFontMetrics();
+			g.drawString(stageNum, x + (btnSize - fmBtn.stringWidth(stageNum)) / 2, startY + fmBtn.getAscent() + 10);
 
-			// resolve the movement of the ship. First assume the ship
-			// isn't moving. If either cursor key is pressed then
-			// update the movement appropraitely
-			// =================================================================
-			// === 2P FEATURE: Check if players are alive before moving ===
-			// =================================================================
-			// 💡 1P 조작 (움직임과 발사)
-// ship 객체가 null이 아니고, 게임 플레이 상태이며 플레이어가 살아있을 때만 조작을 처리합니다.
-			if (ship != null && playerHealth > 0 && !waitingForKeyPress && !pausePromptActive && !stageSelectActive) {
-				// 움직임 처리
-				ship.setHorizontalMovement(0);
-				if (leftPressed && !rightPressed) {
-					ship.setHorizontalMovement(-moveSpeed);
-				} else if (rightPressed && !leftPressed) {
-					ship.setHorizontalMovement(moveSpeed);
-				}
-
-				// 발사 처리
-				if (firePressed) {
-					tryToFireFrom(ship, 0);
-				}
+			// "Hard" 또는 잠금 상태 표시 (선택 사항)
+			// 💡 [필수 수정] 잠금 조건도 maxClearedStage 기준으로 변경
+			if (stage > maxClearedStage + 1) {
+				g.setColor(new Color(0, 0, 0, 150));
+				g.fillRect(x, startY, btnSize, btnSize);
+				g.setColor(Color.RED);
+				g.drawString("LOCK", x + 5, startY + 40);
 			}
-
-// 💡 2P 조작 (움직임과 발사)
-// ship2 객체가 null이 아니고, 게임 플레이 상태이며 플레이어가 살아있을 때만 조작을 처리합니다.
-			if (ship2 != null && player2Health > 0 && !waitingForKeyPress && !pausePromptActive && !stageSelectActive) {
-				// 움직임 처리
-				ship2.setHorizontalMovement(0);
-				if (leftPressed2 && !rightPressed2) {
-					ship2.setHorizontalMovement(-moveSpeed);
-				} else if (rightPressed2 && !leftPressed2) {
-					ship2.setHorizontalMovement(moveSpeed);
-				}
-
-				// 발사 처리
-				if (firePressed2) {
-					tryToFireFrom(ship2, 1);
-				}
-			}
-			
-			// we want each frame to take 10 milliseconds, to do this
-			// we've recorded when we started the frame. We add 10 milliseconds
-			// to this and then factor in the current time to give
-			// us our final value to wait for
-			SystemTimer.sleep(lastLoopTime + 10 - SystemTimer.getTime());
 
 		}
+
+		// 안내 메시지
+		String info = "Use Left/Right Arrows to select, Enter to start.";
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Arial", Font.PLAIN, 18));
+		FontMetrics fmInfo = g.getFontMetrics();
+		g.drawString(info, (800 - fmInfo.stringWidth(info)) / 2, 500);
+
+		// 폰트와 색상 복구 (안전성)
+		g.setColor(Color.white);
+		g.setFont(new Font("Arial", Font.PLAIN, 12));
 	}
 
+	/**
+	 * Draw pause prompt overlay
+	 */
+	private void drawPausePrompt(Graphics2D g) {
+		// dim background
+		g.setColor(new Color(0, 0, 0, 160));
+		g.fillRect(0, 0, 800, 600);
+		g.setColor(Color.white);
+		String pts = String.format("%03d", Math.max(0, score));
+		String l1 = "여기서 멈춘다면 " + pts + " 포인트를 얻습니다.";
+		String l2 = "메인메뉴로 나가려면 ESC, 계속 플레이하려면 SPACE를 누르십시오.";
+		FontMetrics fm = g.getFontMetrics();
+		g.drawString(l1, (800 - fm.stringWidth(l1)) / 2, 260);
+		g.drawString(l2, (800 - fm.stringWidth(l2)) / 2, 300);
+	}
 
+	/**
+	 * Draw game over screen
+	 */
+	private void drawGameOverScreen(Graphics2D g) {
+		g.setColor(Color.white);
+		String mainMessage = message; // "Oh no..." 또는 "Congratulations!"
+		FontMetrics fm = g.getFontMetrics();
+
+		// 1. 주 메시지 출력
+		g.drawString(mainMessage, (800 - fm.stringWidth(mainMessage)) / 2, 250);
+		g.drawString("Press any key", (800 - fm.stringWidth("Press any key")) / 2, 300);
+
+		// 2. 최고 점수 안내문 표시
+		if (newHighScoreAchieved) {
+			g.setColor(Color.YELLOW);
+			g.setFont(new Font("Arial", Font.BOLD, 30));
+
+			// message 변수가 이미 설정된 상태이므로, 'score' 변수는 아직 초기화되지 않은
+			// 최종 점수 값을 가지고 있습니다. (notifyDeath/Win에서 score=0 전에 호출됨)
+			String highMsg = "🎉 New High Score! (" + finalScore + ")";
+
+			FontMetrics fm30 = g.getFontMetrics();
+			// Y 좌표 400에 출력 (기존 메시지 아래)
+			g.drawString(highMsg, (800 - fm30.stringWidth(highMsg)) / 2, 400);
+		}
+
+		// 폰트와 색상 복구 (선택 사항이지만 안전합니다)
+		g.setColor(Color.white);
+		g.setFont(new Font("Arial", Font.PLAIN, 12)); // 원래 폰트로 복구 (Game.java에서 기본 폰트 설정이 필요할 수 있음)
+	}
+
+	/**
+	 * Handle player input during gameplay
+	 */
+	private void handlePlayerInput() {
+		// 💡 1P 조작 (움직임과 발사)
+		// ship 객체가 null이 아니고, 게임 플레이 상태이며 플레이어가 살아있을 때만 조작을 처리합니다.
+		if (ship != null && playerHealth > 0 && !waitingForKeyPress && !pausePromptActive && !stageSelectActive) {
+			// 움직임 처리
+			ship.setHorizontalMovement(0);
+			if (leftPressed && !rightPressed) {
+				ship.setHorizontalMovement(-moveSpeed);
+			} else if (rightPressed && !leftPressed) {
+				ship.setHorizontalMovement(moveSpeed);
+			}
+
+			// 발사 처리
+			if (firePressed) {
+				tryToFireFrom(ship, 0);
+			}
+		}
+
+		// 💡 2P 조작 (움직임과 발사)
+		// ship2 객체가 null이 아니고, 게임 플레이 상태이며 플레이어가 살아있을 때만 조작을 처리합니다.
+		if (ship2 != null && player2Health > 0 && !waitingForKeyPress && !pausePromptActive && !stageSelectActive) {
+			// 움직임 처리
+			ship2.setHorizontalMovement(0);
+			if (leftPressed2 && !rightPressed2) {
+				ship2.setHorizontalMovement(-moveSpeed);
+			} else if (rightPressed2 && !leftPressed2) {
+				ship2.setHorizontalMovement(moveSpeed);
+			}
+
+			// 발사 처리
+			if (firePressed2) {
+				tryToFireFrom(ship2, 1);
+			}
+		}
+	}
 
 	/**
 	 * Handle enemy firing with type-specific behaviors and difficulty scaling
