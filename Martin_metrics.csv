@@ -1,0 +1,9 @@
+Martin packaging metrics,Wed, 5 Nov 2025 12:27:27 KST
+Package,A,Ca,Ce,D,I
+org.newdawn.spaceinvaders,0.00,47,195,0.19,0.78
+org.newdawn.spaceinvaders.entity,0.20,125,43,0.54,0.32
+org.newdawn.spaceinvaders.firebase,0.00,54,7,0.89,0.11
+org.newdawn.spaceinvaders.items,0.12,48,4,0.80,0.08
+org.newdawn.spaceinvaders.settings,0.00,15,0,1.00,0.00
+org.newdawn.spaceinvaders.ui,0.00,2,42,0.05,0.95
+
