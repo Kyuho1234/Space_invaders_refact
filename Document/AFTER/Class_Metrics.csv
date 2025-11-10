@@ -1,0 +1,421 @@
+Complexity metrics,Mon, 10 Nov 2025 11:35:30 KST
+Method,CogC,ev(G),iv(G),v(G)
+actionPerformed(ActionEvent),0,n/a,n/a,n/a
+doInBackground(),0,n/a,n/a,n/a
+done(),6,n/a,n/a,n/a
+"isCellEditable(int, int)",0,n/a,n/a,n/a
+mouseEntered(MouseEvent),0,n/a,n/a,n/a
+mouseExited(MouseEvent),0,n/a,n/a,n/a
+"org.newdawn.spaceinvaders.Game.EnemyShotEntity.EnemyShotEntity(int, int, double, double)",0,1,1,1
+org.newdawn.spaceinvaders.Game.EnemyShotEntity.collidedWith(Entity),1,1,2,2
+org.newdawn.spaceinvaders.Game.EnemyShotEntity.move(long),2,1,4,4
+org.newdawn.spaceinvaders.Game.Game(),5,1,4,5
+"org.newdawn.spaceinvaders.Game.ItemPanelLayout.ItemPanelLayout(int, int, int, int, int, int, int[], ...)",0,1,1,1
+org.newdawn.spaceinvaders.Game.KeyInputHandler.applyHealthBoost(),3,1,4,4
+org.newdawn.spaceinvaders.Game.KeyInputHandler.getItemIdFromKey(int),1,5,1,5
+org.newdawn.spaceinvaders.Game.KeyInputHandler.handleItemUsageInput(KeyEvent),3,3,2,4
+org.newdawn.spaceinvaders.Game.KeyInputHandler.handlePauseInput(KeyEvent),7,3,3,6
+org.newdawn.spaceinvaders.Game.KeyInputHandler.handlePlayerMovementInput(KeyEvent),6,1,1,7
+org.newdawn.spaceinvaders.Game.KeyInputHandler.handleStageSelectInput(KeyEvent),4,1,5,5
+org.newdawn.spaceinvaders.Game.KeyInputHandler.keyPressed(KeyEvent),4,5,2,5
+org.newdawn.spaceinvaders.Game.KeyInputHandler.keyReleased(KeyEvent),8,3,1,9
+org.newdawn.spaceinvaders.Game.KeyInputHandler.keyTyped(KeyEvent),13,3,6,10
+"org.newdawn.spaceinvaders.Game.applyDamageToPlayer(ShipEntity, int)",2,1,3,3
+org.newdawn.spaceinvaders.Game.applyDamageToPlayer1(int),2,2,2,3
+org.newdawn.spaceinvaders.Game.applyDamageToPlayer2(int),2,2,2,3
+org.newdawn.spaceinvaders.Game.applyPermanentUpgrades(),3,2,2,4
+org.newdawn.spaceinvaders.Game.awardCurrentScoreAsPoints(),4,2,4,5
+org.newdawn.spaceinvaders.Game.awardStageBonus(),2,1,3,3
+org.newdawn.spaceinvaders.Game.calculateEnemyFiringInterval(),0,1,1,1
+"org.newdawn.spaceinvaders.Game.calculateIconSize(Image, int)",4,1,3,5
+org.newdawn.spaceinvaders.Game.calculateItemPanelLayout(int),4,1,4,4
+org.newdawn.spaceinvaders.Game.canEnemiesFire(long),0,1,1,1
+org.newdawn.spaceinvaders.Game.checkEntityCollisions(),6,1,4,4
+org.newdawn.spaceinvaders.Game.checkGameOverCondition(),2,1,2,2
+org.newdawn.spaceinvaders.Game.checkSinglePlayerGameOver(),1,1,2,2
+org.newdawn.spaceinvaders.Game.checkTwoPlayerGameOver(),2,1,2,3
+org.newdawn.spaceinvaders.Game.clearGameEntities(),0,1,1,1
+org.newdawn.spaceinvaders.Game.collectAliveAliens(),3,1,3,3
+"org.newdawn.spaceinvaders.Game.createAlienFormation(int, int, int, int, int, int, String)",3,1,3,3
+org.newdawn.spaceinvaders.Game.createBossAlien(),0,1,1,1
+"org.newdawn.spaceinvaders.Game.determineAlienType(int, int, int)",1,6,6,6
+org.newdawn.spaceinvaders.Game.drawGame(Graphics2D),4,1,5,5
+org.newdawn.spaceinvaders.Game.drawGameOverScreen(Graphics2D),1,1,2,2
+org.newdawn.spaceinvaders.Game.drawHUD(Graphics2D),0,1,1,1
+"org.newdawn.spaceinvaders.Game.drawIconPlaceholder(Graphics2D, ItemPanelLayout, int, int, int)",0,1,1,1
+"org.newdawn.spaceinvaders.Game.drawItemCountBadge(Graphics2D, int, int, int, int, int)",4,1,2,5
+"org.newdawn.spaceinvaders.Game.drawItemPanelBackground(Graphics2D, ItemPanelLayout)",0,1,1,1
+"org.newdawn.spaceinvaders.Game.drawItemSlots(Graphics2D, ItemPanelLayout)",3,3,2,3
+org.newdawn.spaceinvaders.Game.drawLeftItemsPanel(Graphics2D),2,2,2,3
+org.newdawn.spaceinvaders.Game.drawPausePrompt(Graphics2D),0,1,1,1
+org.newdawn.spaceinvaders.Game.drawPlayerHPBars(Graphics2D),3,1,3,3
+"org.newdawn.spaceinvaders.Game.drawSingleHPBar(Graphics2D, String, int, int, String)",5,1,4,6
+"org.newdawn.spaceinvaders.Game.drawSingleItemSlot(Graphics2D, ItemPanelLayout, int, int)",3,1,3,3
+org.newdawn.spaceinvaders.Game.drawStageSelectScreen(Graphics2D),8,1,5,6
+org.newdawn.spaceinvaders.Game.fireAlienShots(AlienEntity),7,1,3,4
+org.newdawn.spaceinvaders.Game.fireFromSelectedShooters(List<AlienEntity>),1,1,2,2
+org.newdawn.spaceinvaders.Game.gameLoop(),1,1,2,2
+org.newdawn.spaceinvaders.Game.getPurchasedItems(),0,1,1,1
+org.newdawn.spaceinvaders.Game.getStage1AlienType(),0,1,1,1
+org.newdawn.spaceinvaders.Game.getStage2AlienType(int),1,2,1,2
+org.newdawn.spaceinvaders.Game.getStage3AlienType(int),2,3,1,3
+"org.newdawn.spaceinvaders.Game.getStage4AlienType(int, int)",4,3,1,4
+org.newdawn.spaceinvaders.Game.getStage5AlienType(),3,4,1,4
+org.newdawn.spaceinvaders.Game.handleEnemyFiring(),2,3,1,3
+org.newdawn.spaceinvaders.Game.handleFinalStageCompletion(),0,1,1,1
+org.newdawn.spaceinvaders.Game.handleIntermediateStageCompletion(),0,1,1,1
+org.newdawn.spaceinvaders.Game.handlePlayerInput(),18,1,9,21
+org.newdawn.spaceinvaders.Game.initAliensForStage(int),1,1,1,6
+org.newdawn.spaceinvaders.Game.initEntities(),2,1,2,2
+org.newdawn.spaceinvaders.Game.isFinalStageCompleted(),0,1,1,1
+org.newdawn.spaceinvaders.Game.isGamePaused(),1,1,1,3
+org.newdawn.spaceinvaders.Game.isImageFilename(String),1,1,4,4
+org.newdawn.spaceinvaders.Game.loadImageResource(String...),16,5,7,8
+org.newdawn.spaceinvaders.Game.loadItemIconImage(String),0,1,1,1
+org.newdawn.spaceinvaders.Game.loadItemUIIcons(),1,1,2,2
+org.newdawn.spaceinvaders.Game.main(String[]),0,1,1,1
+org.newdawn.spaceinvaders.Game.mapNameToIconFilename(String),1,5,1,5
+org.newdawn.spaceinvaders.Game.matchItemIndexForId(String),7,6,3,8
+org.newdawn.spaceinvaders.Game.moveEntitiesIfActive(long),2,2,2,3
+org.newdawn.spaceinvaders.Game.notifyAlienKilled(),0,1,1,1
+org.newdawn.spaceinvaders.Game.notifyAlienKilled(int),5,1,5,5
+org.newdawn.spaceinvaders.Game.notifyBossKilled(),2,1,3,3
+org.newdawn.spaceinvaders.Game.notifyDeath(),5,1,4,5
+"org.newdawn.spaceinvaders.Game.notifyPlayerHit(ShipEntity, int)",1,2,1,2
+org.newdawn.spaceinvaders.Game.notifyWin(),2,1,2,2
+org.newdawn.spaceinvaders.Game.prepareStageSelection(),0,1,1,1
+org.newdawn.spaceinvaders.Game.processEntityLogic(),2,2,2,3
+org.newdawn.spaceinvaders.Game.refreshItemCountsFromFirestore(),8,2,3,8
+org.newdawn.spaceinvaders.Game.removeDeadEntities(),0,1,1,1
+org.newdawn.spaceinvaders.Game.removeEntity(Entity),0,1,1,1
+org.newdawn.spaceinvaders.Game.resolveItemIconFilename(String),2,2,2,3
+org.newdawn.spaceinvaders.Game.returnToMainMenu(),0,1,1,1
+org.newdawn.spaceinvaders.Game.saveScoreAsPoints(),10,1,5,6
+org.newdawn.spaceinvaders.Game.selectShooters(List<AlienEntity>),4,1,4,4
+org.newdawn.spaceinvaders.Game.shouldIgnoreHit(),2,1,3,3
+org.newdawn.spaceinvaders.Game.startGame(),8,1,5,7
+org.newdawn.spaceinvaders.Game.syncItemCountsFromManager(),5,2,1,5
+org.newdawn.spaceinvaders.Game.tryToFire(),2,2,2,3
+"org.newdawn.spaceinvaders.Game.tryToFireFrom(Entity, int)",1,2,1,2
+org.newdawn.spaceinvaders.Game.updateFrameCounter(long),4,1,3,4
+org.newdawn.spaceinvaders.Game.updateGameEntities(long),0,1,1,1
+org.newdawn.spaceinvaders.Game.updateLogic(),0,1,1,1
+org.newdawn.spaceinvaders.Game.updateMaxClearedStage(),4,1,4,4
+org.newdawn.spaceinvaders.Sprite.Sprite(Image),0,1,1,1
+"org.newdawn.spaceinvaders.Sprite.Sprite(Image, Color)",0,1,1,1
+org.newdawn.spaceinvaders.Sprite.createTintedSprite(Color),0,1,1,1
+"org.newdawn.spaceinvaders.Sprite.draw(Graphics, int, int)",2,1,2,2
+org.newdawn.spaceinvaders.Sprite.getHeight(),0,1,1,1
+org.newdawn.spaceinvaders.Sprite.getWidth(),0,1,1,1
+org.newdawn.spaceinvaders.SpriteStore.fail(String),0,1,1,1
+org.newdawn.spaceinvaders.SpriteStore.get(),0,1,1,1
+org.newdawn.spaceinvaders.SpriteStore.getSprite(String),3,2,4,4
+org.newdawn.spaceinvaders.SystemTimer.SystemTimer(),0,1,1,1
+org.newdawn.spaceinvaders.SystemTimer.getTime(),0,1,1,1
+org.newdawn.spaceinvaders.SystemTimer.sleep(long),6,4,3,5
+"org.newdawn.spaceinvaders.entity.AlienEntity.AlienEntity(Game, int, int)",0,1,1,1
+"org.newdawn.spaceinvaders.entity.AlienEntity.AlienEntity(Game, int, int, AlienType)",0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.collidedWith(Entity),7,1,4,4
+org.newdawn.spaceinvaders.entity.AlienEntity.doLogic(),3,1,2,3
+org.newdawn.spaceinvaders.entity.AlienEntity.draw(Graphics),2,1,2,3
+org.newdawn.spaceinvaders.entity.AlienEntity.drawHealthBar(Graphics),12,1,4,9
+org.newdawn.spaceinvaders.entity.AlienEntity.getAlienType(),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.getFiringProbability(),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.getInitialX(),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.getMovementStrategy(),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.getScoreValue(),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.getShotCount(),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.getShotSpreadAngle(),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.getTintColor(),1,6,1,6
+org.newdawn.spaceinvaders.entity.AlienEntity.getYDouble(),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.move(long),8,1,4,8
+org.newdawn.spaceinvaders.entity.AlienEntity.setMovementStrategy(MovementStrategy),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.setStageMultiplier(double),11,1,1,6
+org.newdawn.spaceinvaders.entity.AlienEntity.setX(double),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.setY(double),0,1,1,1
+org.newdawn.spaceinvaders.entity.AlienEntity.setupAlienType(AlienType),1,1,1,6
+org.newdawn.spaceinvaders.entity.AlienEntity.setupAnimationFrames(),2,1,2,2
+org.newdawn.spaceinvaders.entity.AlienEntity.setupMovementStrategy(),2,1,1,5
+org.newdawn.spaceinvaders.entity.AlienFactory.AlienFactory(Game),0,1,1,1
+"org.newdawn.spaceinvaders.entity.AlienFactory.createAlien(int, int, int, int, int)",0,1,1,1
+"org.newdawn.spaceinvaders.entity.AlienFactory.createBoss(int, int, int)",0,1,1,1
+"org.newdawn.spaceinvaders.entity.AlienFactory.determineAlienType(int, int, int)",14,10,2,12
+org.newdawn.spaceinvaders.entity.AlienFactory.getRandomAlienType(),3,4,1,4
+"org.newdawn.spaceinvaders.entity.Entity.Entity(String, int, int)",0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.collidesWith(Entity),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.doLogic(),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.draw(Graphics),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.getHorizontalMovement(),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.getVerticalMovement(),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.getX(),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.getY(),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.move(long),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.setHorizontalMovement(double),0,1,1,1
+org.newdawn.spaceinvaders.entity.Entity.setVerticalMovement(double),0,1,1,1
+"org.newdawn.spaceinvaders.entity.ShipEntity.ShipEntity(Game, String, int, int)",0,1,1,1
+org.newdawn.spaceinvaders.entity.ShipEntity.collidedWith(Entity),1,1,2,2
+org.newdawn.spaceinvaders.entity.ShipEntity.move(long),4,3,1,5
+"org.newdawn.spaceinvaders.entity.ShotEntity.ShotEntity(Game, String, int, int)",0,1,1,1
+org.newdawn.spaceinvaders.entity.ShotEntity.collidedWith(Entity),2,2,1,3
+org.newdawn.spaceinvaders.entity.ShotEntity.move(long),1,1,2,2
+org.newdawn.spaceinvaders.entity.movement.BossMovement.getName(),0,1,1,1
+"org.newdawn.spaceinvaders.entity.movement.BossMovement.move(AlienEntity, long)",3,1,2,4
+org.newdawn.spaceinvaders.entity.movement.NormalMovement.getName(),0,1,1,1
+"org.newdawn.spaceinvaders.entity.movement.NormalMovement.move(AlienEntity, long)",0,1,1,1
+org.newdawn.spaceinvaders.entity.movement.TeleportMovement.getName(),0,1,1,1
+"org.newdawn.spaceinvaders.entity.movement.TeleportMovement.move(AlienEntity, long)",11,1,3,7
+org.newdawn.spaceinvaders.entity.movement.WaveMovement.getName(),0,1,1,1
+"org.newdawn.spaceinvaders.entity.movement.WaveMovement.move(AlienEntity, long)",3,1,2,4
+org.newdawn.spaceinvaders.entity.movement.ZigzagMovement.getName(),0,1,1,1
+"org.newdawn.spaceinvaders.entity.movement.ZigzagMovement.move(AlienEntity, long)",2,1,1,3
+"org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.FirebaseAuthManager(FirebaseHttpClient, String)",0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.applyAuthResponse(JSONObject),2,1,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.getCurrentUserEmail(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.getIdToken(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.getUid(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.isLoggedIn(),0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.signInWithEmailPassword(String, String)",2,2,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.signOut(),0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.signUpWithEmailPassword(String, String)",2,2,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseAuthManager.updateDisplayName(String),2,2,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.addAuthHeader(HttpURLConnection),1,1,2,2
+org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.delete(String),3,2,2,4
+org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.get(String),0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.patch(String, JSONObject)",0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.post(String, JSONObject)",0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.readAll(InputStream),1,1,2,2
+org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.readResponse(HttpURLConnection),5,2,3,5
+org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.setIdToken(String),0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseHttpClient.writeBody(HttpURLConnection, JSONObject)",0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.FirebaseManager(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.addPoints(int),2,2,1,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.applyAuthResponse(JSONObject),2,1,2,3
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.applyEnvironmentVariable(String, String)",3,2,2,6
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.applyPropertyValue(Properties, String)",7,2,2,8
+org.newdawn.spaceinvaders.firebase.FirebaseManager.buildDefaultUserFields(),1,1,2,2
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.buildPointsUpdateFields(int, JSONObject)",0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.buildTopScoresQuery(int),0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.buildUpgradeFields(String, int, int, JSONObject)",0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.buildUpgradePatchUrl(String, String)",0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.canPurchaseUpgrade(int),3,3,3,4
+org.newdawn.spaceinvaders.firebase.FirebaseManager.collectMissingDefaults(JSONObject),7,1,8,8
+org.newdawn.spaceinvaders.firebase.FirebaseManager.deleteItemByDocumentName(String),4,3,4,5
+org.newdawn.spaceinvaders.firebase.FirebaseManager.deleteJson(String),6,2,4,5
+org.newdawn.spaceinvaders.firebase.FirebaseManager.deletePurchasedItem(String),6,5,5,6
+org.newdawn.spaceinvaders.firebase.FirebaseManager.documentsBase(),2,2,1,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.ensureUserDocExists(),10,3,8,9
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.executeHttpRequest(String, String, String)",0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.executePointsUpdate(String, JSONObject)",1,2,1,2
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.executeUpgradePatch(String, JSONObject, String, int)",1,2,2,2
+org.newdawn.spaceinvaders.firebase.FirebaseManager.extractEmailFromFields(JSONObject),1,2,2,2
+org.newdawn.spaceinvaders.firebase.FirebaseManager.extractFirebaseError(JSONObject),1,1,2,2
+org.newdawn.spaceinvaders.firebase.FirebaseManager.extractItemDetailFromDocument(JSONObject),2,2,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.extractItemIdFromDocument(JSONObject),2,3,1,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.extractItemIdFromFields(JSONObject),2,3,1,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.extractItemIdsFromDocuments(JSONArray),3,1,3,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.extractScoreFromFields(JSONObject),3,3,3,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getAllUpgrades(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getCurrentUserEmail(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getHighestScore(),7,5,5,7
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getIdToken(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getInstance(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getJson(String),6,2,4,6
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getMaxClearedStage(),6,5,6,6
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getPurchasedItemDetails(),5,2,5,6
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getPurchasedItems(),5,2,5,6
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getTopScores(int),4,2,4,5
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getUid(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getUpgradeCost(String),2,2,1,5
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getUpgradeLevel(String),7,5,5,7
+org.newdawn.spaceinvaders.firebase.FirebaseManager.getUserPoints(),7,5,5,7
+org.newdawn.spaceinvaders.firebase.FirebaseManager.initialize(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.isConfigComplete(),1,1,1,2
+org.newdawn.spaceinvaders.firebase.FirebaseManager.isLoggedIn(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.loadConfigFromEnvironment(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseManager.loadConfigFromPropertiesFile(),2,2,1,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.loadConfigIfNeeded(),2,2,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.logConfigStatus(),3,1,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.parseItemDetailsFromDocuments(JSONArray),3,1,3,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.parseScoreDocument(JSONObject),1,2,1,2
+org.newdawn.spaceinvaders.firebase.FirebaseManager.parseTopScoresResponse(JSONArray),6,1,4,4
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.patchJson(String, JSONObject)",6,2,4,6
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.patchUserFields(String, JSONObject)",3,2,3,4
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.postJson(String, JSONObject)",7,2,4,6
+org.newdawn.spaceinvaders.firebase.FirebaseManager.postJsonCommit(JSONObject),6,2,4,6
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.postJsonFirestore(String, JSONObject)",6,2,4,6
+org.newdawn.spaceinvaders.firebase.FirebaseManager.postJsonRunQuery(JSONObject),8,2,4,7
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.preserveExistingCoreFields(JSONObject, JSONObject)",3,1,4,4
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.preserveOtherUpgrades(JSONObject, JSONObject, String)",4,1,4,4
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.preserveUpgradeFields(JSONObject, JSONObject)",3,1,3,3
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.purchaseItem(String, String, int)",6,5,4,6
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.purchaseUpgrade(String, int)",4,3,3,5
+org.newdawn.spaceinvaders.firebase.FirebaseManager.readAll(InputStream),1,1,2,2
+org.newdawn.spaceinvaders.firebase.FirebaseManager.saveMaxClearedStage(int),4,2,4,4
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.setConfig(String, String)",0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.setConfig(String, String, String)",2,1,2,3
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.signInWithEmailPassword(String, String)",2,2,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.signOut(),0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseManager.signUpWithEmailPassword(String, String)",2,2,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.spendPoints(int),2,2,1,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.updateDisplayName(String),2,2,2,3
+org.newdawn.spaceinvaders.firebase.FirebaseManager.updateHighestScore(int),4,4,2,5
+org.newdawn.spaceinvaders.firebase.FirebaseManager.updateUserPoints(int),5,3,4,6
+"org.newdawn.spaceinvaders.firebase.FirebaseRankingManager.FirebaseRankingManager(FirebaseHttpClient, String, String)",0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseRankingManager.buildTopScoresQuery(int),0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseRankingManager.extractRankingEntry(JSONObject, JSONObject)",5,1,5,5
+org.newdawn.spaceinvaders.firebase.FirebaseRankingManager.getTopScores(int),4,2,4,5
+"org.newdawn.spaceinvaders.firebase.FirebaseRankingManager.getUserRanking(String, int)",6,4,3,6
+org.newdawn.spaceinvaders.firebase.FirebaseRankingManager.parseTopScoresResponse(JSONArray),7,1,5,5
+"org.newdawn.spaceinvaders.firebase.FirebaseUserManager.FirebaseUserManager(FirebaseHttpClient, String, String)",0,1,1,1
+"org.newdawn.spaceinvaders.firebase.FirebaseUserManager.buildPointsUpdateFields(int, JSONObject)",2,1,3,3
+"org.newdawn.spaceinvaders.firebase.FirebaseUserManager.executePointsUpdate(String, JSONObject)",0,1,1,1
+org.newdawn.spaceinvaders.firebase.FirebaseUserManager.getUserHighestScore(String),7,4,5,7
+org.newdawn.spaceinvaders.firebase.FirebaseUserManager.getUserMaxClearedStage(String),7,4,5,7
+org.newdawn.spaceinvaders.firebase.FirebaseUserManager.getUserPoints(String),7,4,5,7
+"org.newdawn.spaceinvaders.firebase.FirebaseUserManager.updateMaxClearedStage(String, int)",7,4,5,8
+"org.newdawn.spaceinvaders.firebase.FirebaseUserManager.updateUserPoints(String, int)",5,3,3,6
+org.newdawn.spaceinvaders.firebase.LoginDialog.LoginDialog(JFrame),0,1,1,1
+org.newdawn.spaceinvaders.firebase.LoginDialog.doLogin(),4,2,4,4
+org.newdawn.spaceinvaders.firebase.LoginDialog.doRegister(),5,3,5,5
+org.newdawn.spaceinvaders.firebase.LoginDialog.isLoginSuccessful(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.MainMenu.MainMenu(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.MainMenu.createMenuButton(String),0,1,1,1
+org.newdawn.spaceinvaders.firebase.MainMenu.initializeUI(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.MainMenu.main(String[]),1,1,1,2
+org.newdawn.spaceinvaders.firebase.MainMenu.setupEventHandlers(),9,1,4,4
+org.newdawn.spaceinvaders.firebase.MainMenu.showStore(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.MainMenu.startGame(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.MainMenu.updateUserStatus(),2,1,2,2
+org.newdawn.spaceinvaders.firebase.RankingDialog.RankingDialog(Frame),0,1,1,1
+org.newdawn.spaceinvaders.firebase.RankingDialog.initializeUI(),0,1,1,1
+org.newdawn.spaceinvaders.firebase.RankingDialog.loadRankingData(),9,1,5,5
+org.newdawn.spaceinvaders.firebase.RankingDialog.setupEventHandlers(),0,1,1,1
+org.newdawn.spaceinvaders.items.DoubleScoreItem.DoubleScoreItem(),0,1,1,1
+org.newdawn.spaceinvaders.items.DualFireItem.DualFireItem(),0,1,1,1
+"org.newdawn.spaceinvaders.items.GameItem.GameItem(String, String, String, String, int)",0,1,1,1
+org.newdawn.spaceinvaders.items.GameItem.getDescription(),0,1,1,1
+org.newdawn.spaceinvaders.items.GameItem.getId(),0,1,1,1
+org.newdawn.spaceinvaders.items.GameItem.getImageFileName(),0,1,1,1
+org.newdawn.spaceinvaders.items.GameItem.getName(),0,1,1,1
+org.newdawn.spaceinvaders.items.GameItem.getPrice(),0,1,1,1
+org.newdawn.spaceinvaders.items.InvincibilityItem.InvincibilityItem(),0,1,1,1
+org.newdawn.spaceinvaders.items.ItemManager.ItemManager(FirebaseManager),0,1,1,1
+org.newdawn.spaceinvaders.items.ItemManager.addOne(String),1,2,1,2
+org.newdawn.spaceinvaders.items.ItemManager.alignWithRegistryKeys(),5,1,4,5
+org.newdawn.spaceinvaders.items.ItemManager.currentFireRateMultiplier(),1,1,1,2
+org.newdawn.spaceinvaders.items.ItemManager.currentScoreMultiplier(),1,1,1,2
+org.newdawn.spaceinvaders.items.ItemManager.getCount(String),1,2,1,2
+org.newdawn.spaceinvaders.items.ItemManager.getCountsArray(),0,1,1,1
+org.newdawn.spaceinvaders.items.ItemManager.isAmmoBoostActive(),0,1,1,1
+org.newdawn.spaceinvaders.items.ItemManager.isDoubleScoreActive(),0,1,1,1
+org.newdawn.spaceinvaders.items.ItemManager.isImageFile(String),1,1,4,4
+org.newdawn.spaceinvaders.items.ItemManager.isInvincible(),0,1,1,1
+org.newdawn.spaceinvaders.items.ItemManager.isValidItemId(String),1,1,4,4
+org.newdawn.spaceinvaders.items.ItemManager.normalizeFromImageFilename(String),4,5,1,5
+org.newdawn.spaceinvaders.items.ItemManager.normalizeFromKeyword(String),6,5,3,7
+org.newdawn.spaceinvaders.items.ItemManager.normalizeId(String),4,5,2,5
+org.newdawn.spaceinvaders.items.ItemManager.setCountsFromPurchased(List<String>),4,4,2,4
+org.newdawn.spaceinvaders.items.ItemManager.update(long),0,1,1,1
+org.newdawn.spaceinvaders.items.ItemManager.use(String),14,8,7,10
+org.newdawn.spaceinvaders.items.ItemRegistry.getAllItems(),0,1,1,1
+org.newdawn.spaceinvaders.items.ItemRegistry.getItemById(String),0,1,1,1
+org.newdawn.spaceinvaders.items.PlusLifeItem.PlusLifeItem(),0,1,1,1
+org.newdawn.spaceinvaders.settings.SettingsDialog.SettingsDialog(JFrame),0,1,1,1
+org.newdawn.spaceinvaders.settings.SettingsDialog.initializeUI(),0,1,1,1
+org.newdawn.spaceinvaders.settings.SettingsDialog.loadCurrentSettings(),2,1,2,2
+org.newdawn.spaceinvaders.settings.SettingsDialog.setupEventHandlers(),0,1,1,1
+org.newdawn.spaceinvaders.settings.SettingsManager.isTwoPlayerEnabled(),0,1,1,1
+org.newdawn.spaceinvaders.settings.SettingsManager.save(),0,1,1,1
+org.newdawn.spaceinvaders.settings.SettingsManager.setTwoPlayerEnabled(boolean),1,1,2,2
+org.newdawn.spaceinvaders.ui.StoreDialog.StoreDialog(JFrame),0,1,1,1
+"org.newdawn.spaceinvaders.ui.StoreDialog.addComponentsToItemPanel(JPanel, JLabel, JLabel, JLabel, JButton, JButton)",0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.confirmItemPurchase(GameItem),0,1,1,1
+"org.newdawn.spaceinvaders.ui.StoreDialog.confirmUpgradePurchase(String, int, int)",0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createItemBuyButton(GameItem),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createItemDetailButton(GameItem),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createItemImageLabel(GameItem),3,1,3,3
+org.newdawn.spaceinvaders.ui.StoreDialog.createItemNameLabel(GameItem),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createItemPanel(GameItem),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createItemPanelContainer(),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createItemPriceLabel(GameItem),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createItemsTab(),4,1,3,3
+"org.newdawn.spaceinvaders.ui.StoreDialog.createUpgradeBuyButton(String, String, int, int)",2,1,2,2
+"org.newdawn.spaceinvaders.ui.StoreDialog.createUpgradeControlPanel(String, String)",1,1,2,2
+"org.newdawn.spaceinvaders.ui.StoreDialog.createUpgradeInfoPanel(String, String, Color)",0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createUpgradeLevelLabel(int),0,1,1,1
+"org.newdawn.spaceinvaders.ui.StoreDialog.createUpgradePanel(String, String, String, Color)",0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createUpgradePanelContainer(Color),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.createUpgradesTab(),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.executePurchase(GameItem),2,1,2,2
+org.newdawn.spaceinvaders.ui.StoreDialog.getExplicitImageFilename(GameItem),3,2,2,4
+org.newdawn.spaceinvaders.ui.StoreDialog.handleItemPurchase(GameItem),3,4,2,4
+"org.newdawn.spaceinvaders.ui.StoreDialog.handleUpgradePurchase(String, String, int, int)",4,3,3,4
+org.newdawn.spaceinvaders.ui.StoreDialog.hasEnoughPointsForItem(GameItem),1,2,2,2
+org.newdawn.spaceinvaders.ui.StoreDialog.initializeStoreUI(),8,1,4,4
+org.newdawn.spaceinvaders.ui.StoreDialog.loadIconFromSprites(String),10,4,5,7
+org.newdawn.spaceinvaders.ui.StoreDialog.matchImageByKeyword(String),7,5,5,9
+org.newdawn.spaceinvaders.ui.StoreDialog.refreshPoints(),1,1,2,2
+org.newdawn.spaceinvaders.ui.StoreDialog.refreshStoreDialog(),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.resolveImageFilename(GameItem),1,2,1,2
+org.newdawn.spaceinvaders.ui.StoreDialog.resolveImageFromItemName(GameItem),2,1,3,3
+org.newdawn.spaceinvaders.ui.StoreDialog.showItemDetails(GameItem),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.showPurchaseFailure(),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.showPurchaseSuccess(GameItem),0,1,1,1
+org.newdawn.spaceinvaders.ui.StoreDialog.showUpgradeFailure(int),0,1,1,1
+"org.newdawn.spaceinvaders.ui.StoreDialog.showUpgradeSuccess(String, int)",0,1,1,1
+windowClosing(WindowEvent),0,n/a,n/a,n/a
+
+Class,OCavg,OCmax,WMC
+org.newdawn.spaceinvaders.Game,2.81,4,233
+org.newdawn.spaceinvaders.Game.EnemyShotEntity,1.67,2,5
+org.newdawn.spaceinvaders.Game.ItemPanelLayout,1.00,1,1
+org.newdawn.spaceinvaders.Game.KeyInputHandler,5.44,9,49
+org.newdawn.spaceinvaders.Sprite,1.17,2,7
+org.newdawn.spaceinvaders.SpriteStore,1.67,3,5
+org.newdawn.spaceinvaders.SystemTimer,2.00,4,6
+org.newdawn.spaceinvaders.entity.AlienEntity,2.74,8,63
+org.newdawn.spaceinvaders.entity.AlienEntity.AlienType,n/a,n/a,0
+org.newdawn.spaceinvaders.entity.AlienFactory,4.00,13,20
+org.newdawn.spaceinvaders.entity.Entity,1.00,1,11
+org.newdawn.spaceinvaders.entity.ShipEntity,2.00,3,6
+org.newdawn.spaceinvaders.entity.ShotEntity,2.00,3,6
+org.newdawn.spaceinvaders.entity.movement.BossMovement,2.50,4,5
+org.newdawn.spaceinvaders.entity.movement.NormalMovement,1.00,1,2
+org.newdawn.spaceinvaders.entity.movement.TeleportMovement,4.00,7,8
+org.newdawn.spaceinvaders.entity.movement.WaveMovement,2.50,4,5
+org.newdawn.spaceinvaders.entity.movement.ZigzagMovement,2.00,3,4
+org.newdawn.spaceinvaders.firebase.FirebaseAuthManager,1.40,2,14
+org.newdawn.spaceinvaders.firebase.FirebaseHttpClient,1.67,3,15
+org.newdawn.spaceinvaders.firebase.FirebaseManager,2.78,8,203
+org.newdawn.spaceinvaders.firebase.FirebaseRankingManager,3.00,5,18
+org.newdawn.spaceinvaders.firebase.FirebaseUserManager,3.12,5,25
+org.newdawn.spaceinvaders.firebase.LoginDialog,2.25,4,9
+org.newdawn.spaceinvaders.firebase.MainMenu,1.33,2,16
+org.newdawn.spaceinvaders.firebase.RankingDialog,1.22,3,11
+org.newdawn.spaceinvaders.items.DoubleScoreItem,1.00,1,1
+org.newdawn.spaceinvaders.items.DualFireItem,1.00,1,1
+org.newdawn.spaceinvaders.items.GameItem,1.00,1,6
+org.newdawn.spaceinvaders.items.InvincibilityItem,1.00,1,1
+org.newdawn.spaceinvaders.items.ItemManager,2.67,9,48
+org.newdawn.spaceinvaders.items.ItemManager.Effect,n/a,n/a,0
+org.newdawn.spaceinvaders.items.ItemRegistry,1.00,1,2
+org.newdawn.spaceinvaders.items.PlusLifeItem,1.00,1,1
+org.newdawn.spaceinvaders.settings.SettingsDialog,1.25,2,5
+org.newdawn.spaceinvaders.settings.SettingsManager,1.67,1,5
+org.newdawn.spaceinvaders.ui.StoreDialog,1.81,6,67
+
+Package,v(G)avg,v(G)tot
+org.newdawn.spaceinvaders,3.31,354
+org.newdawn.spaceinvaders.entity,2.42,109
+org.newdawn.spaceinvaders.entity.movement,2.40,24
+org.newdawn.spaceinvaders.firebase,3.25,396
+org.newdawn.spaceinvaders.items,2.33,70
+org.newdawn.spaceinvaders.settings,1.29,9
+org.newdawn.spaceinvaders.ui,2.06,74
+
+Module,v(G)avg,v(G)tot
+space_invaders,2.90,"1,036"
+
+Project,v(G)avg,v(G)tot
+project,2.90,"1,036"
+
