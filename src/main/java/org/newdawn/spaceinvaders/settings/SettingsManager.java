@@ -3,6 +3,7 @@ package org.newdawn.spaceinvaders.settings;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 public class SettingsManager {
@@ -14,7 +15,7 @@ public class SettingsManager {
     private static Path configPath;
 
     static {
-        Path dir = Path.of(System.getProperty("user.home"), DIR_NAME);
+        Path dir = Paths.get(System.getProperty("user.home"), DIR_NAME);
         configPath = dir.resolve(FILE_NAME);
         try {
             if (!Files.exists(dir)) Files.createDirectories(dir);
@@ -51,3 +52,5 @@ public class SettingsManager {
         }
     }
 }
+
+

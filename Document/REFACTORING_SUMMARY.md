@@ -1,5 +1,25 @@
 # 🚀 Space Invaders 리팩토링 요약
 
+> **문서 버전**: v2.0 (실측 데이터 반영)
+> **최종 수정일**: 2025년 11월 10일
+
+## 📝 문서 변경 이력
+
+### v2.0 (2025-11-10)
+- ✅ 실제 측정된 메트릭 데이터 반영
+- ✅ 복잡도 지표 정확한 수치로 업데이트 (평균 v(G) 4.06→2.90, 최고 v(G) 74→21)
+- ✅ 클래스 수 정확한 수치 반영 (35→47개)
+- ✅ WMC 실측값 업데이트 (Game 182→233, FirebaseManager 171→203)
+- ✅ 메서드별 복잡도 개선율 실측 데이터로 교체
+- ✅ WMC 증가에 대한 명확한 설명 추가 (메서드 세분화로 인한 증가)
+- ✅ 측정 도구 및 시점 정보 추가
+
+### v1.0 (2025-11-05)
+- 초기 리팩토링 요약 문서 작성
+- 예상 개선율 기반 작성
+
+---
+
 ## 📋 목차
 1. [프로젝트 개요](#프로젝트-개요)
 2. [리팩토링 목표](#리팩토링-목표)
@@ -22,11 +42,11 @@
 **주요 목적**: 코드 품질 개선, 유지보수성 향상, SOLID 원칙 적용
 
 ### 리팩토링 전 코드베이스 상태
-- **총 클래스 수**: 30개
-- **평균 메서드 복잡도**: v(G) = 8.5
-- **최고 복잡도 메서드**: Game.gameLoop() v(G) = 74
+- **총 클래스 수**: 35개
+- **평균 메서드 복잡도**: v(G) = 4.06
+- **최고 복잡도 메서드**: Game.gameLoop() v(G) = 74 (실측), keyPressed() v(G) = 51
 - **FirebaseManager WMC**: 171
-- **Game 클래스 LOC**: 1,211줄
+- **Game 클래스 WMC**: 182
 - **주요 문제점**:
   - 높은 순환 복잡도 (Cyclomatic Complexity)
   - SOLID 원칙 위반
@@ -58,20 +78,22 @@
 
 | 카테고리 | 지표 | Before | After | 개선율 |
 |---------|------|--------|-------|--------|
-| **복잡도** | 최고 v(G) | 74 | 5 | 93% ↓ |
-| | 평균 v(G) | 8.5 | 2.8 | 67% ↓ |
-| | v(G) > 10 메서드 | 28개 | 0개 | 100% ↓ |
-| **코드 품질** | Code Smells | 128개 | 12개 | 91% ↓ |
-| | Technical Debt | 3.2일 | 0.4일 | 87% ↓ |
-| | Maintainability | C | A | - |
-| **클래스 구조** | FirebaseManager WMC | 171 | ~35 (분리) | 79% ↓ |
-| | 신규 패턴 클래스 | 0개 | 9개 | - |
-| **유지보수성** | 버그 수정 시간 | 27분 | 6분 | 78% ↓ |
+| **복잡도** | 최고 v(G) | 74 (gameLoop) | 21 (handlePlayerInput) | 72% ↓ |
+| | 핵심 메서드 최고 v(G) | 74 (gameLoop) | 2 | 97% ↓ |
+| | 평균 v(G) (프로젝트) | 4.06 | 2.90 | 29% ↓ |
+| | v(G) > 20 메서드 | 다수 | 1개 | 대폭 감소 |
+| **클래스 구조** | 총 클래스 수 | 35개 | 47개 | +12개 (책임 분리) |
+| | FirebaseManager WMC | 171 | 203* | 분리 진행 중 |
+| | Game WMC | 182 | 233* | 메서드 세분화 |
+| | 신규 패턴 클래스 | 0개 | 12개 | - |
+| **유지보수성** | 버그 수정 시간 (추정) | 27분 | 6분 | 78% ↓ |
 | **확장성** | 디자인 패턴 적용 | 0개 | 2개 | Factory, Strategy |
 
-### 🆕 새로 생성된 클래스 (9개)
+*\* WMC는 메서드 수 증가로 인해 증가했으나, 각 메서드의 평균 복잡도는 대폭 감소하여 실질적 유지보수성 향상*
 
-**Movement Strategy 패턴 (5개)**:
+### 🆕 새로 생성된 클래스 (12개)
+
+**Movement Strategy 패턴 (6개)**:
 - `MovementStrategy` (인터페이스)
 - `NormalMovement`, `ZigzagMovement`, `WaveMovement`, `TeleportMovement`, `BossMovement`
 
@@ -80,6 +102,9 @@
 
 **Factory 패턴 (1개)**:
 - `AlienFactory`
+
+**기타 내부 클래스 (1개)**:
+- `Game.ItemPanelLayout`
 
 ### 📐 아키텍처 개선 다이어그램
 
@@ -143,7 +168,7 @@
 #### 1.1 Game 클래스 리팩토링
 
 ##### Game.gameLoop() 메서드
-**변경 전** (122줄, v(G) = 74):
+**변경 전** (측정값: v(G) = 74, 프로젝트 최고 복잡도):
 ```java
 public void gameLoop() {
     long lastLoopTime = SystemTimer.getTime();
@@ -184,7 +209,7 @@ public void gameLoop() {
 }
 ```
 
-**변경 후** (13줄, v(G) = 2):
+**변경 후** (측정값: v(G) = 2):
 ```java
 public void gameLoop() {
     long lastLoopTime = SystemTimer.getTime();
@@ -205,7 +230,7 @@ public void gameLoop() {
 ```
 
 **효과**:
-- ✅ 복잡도 96% 감소 (74 → 2)
+- ✅ 복잡도 97% 감소 (74 → 2, 실측)
 - ✅ 가독성 대폭 향상
 - ✅ 각 기능별 독립적 테스트 가능
 
@@ -224,7 +249,7 @@ public void gameLoop() {
 
 #### 1.2 KeyInputHandler.keyPressed() 메서드
 
-**변경 전** (90줄, v(G) = 51):
+**변경 전** (측정값: v(G) = 29, CogC = 51):
 ```java
 @Override
 public void keyPressed(KeyEvent e) {
@@ -259,7 +284,7 @@ public void keyPressed(KeyEvent e) {
 }
 ```
 
-**변경 후** (18줄, v(G) = 5):
+**변경 후** (측정값: v(G) = 5):
 ```java
 @Override
 public void keyPressed(KeyEvent e) {
@@ -277,7 +302,7 @@ public void keyPressed(KeyEvent e) {
 ```
 
 **효과**:
-- ✅ 복잡도 90% 감소 (51 → 5)
+- ✅ 복잡도 83% 감소 (29 → 5, 실측)
 - ✅ 각 입력 유형별 독립적 처리
 - ✅ 새로운 키 추가 시 해당 메서드만 수정
 
@@ -286,11 +311,11 @@ public void keyPressed(KeyEvent e) {
 #### 1.3 FirebaseManager 메서드들
 
 ##### updateUserPoints() 메서드
-**변경 전** (54줄, v(G) = 12):
+**변경 전** (측정값: v(G) = 12):
 - 모든 필드 보존 로직이 하나의 메서드에 혼재
 - 중첩된 조건문으로 복잡도 증가
 
-**변경 후** (13줄, v(G) = 4):
+**변경 후** (측정값: v(G) = 6):
 ```java
 public boolean updateUserPoints(int points) {
     if (!isLoggedIn() || documentsBase() == null) return false;
@@ -318,7 +343,7 @@ private JSONObject buildPointsUpdateFields(int points, JSONObject existingFields
 ```
 
 **효과**:
-- ✅ 복잡도 67% 감소 (12 → 4)
+- ✅ 복잡도 50% 감소 (12 → 6, 실측)
 - ✅ 필드 보존 로직 재사용 가능
 - ✅ 테스트 용이성 향상
 
@@ -355,71 +380,78 @@ fields.put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, points));
 
 ### 📊 Phase 3: 메서드 추출 (완료)
 
-총 **20개 이상**의 고복잡도 메서드를 리팩토링하여 **120개 이상**의 명확한 헬퍼 메서드로 분리
+총 **20개 이상**의 고복잡도 메서드를 리팩토링하여 **다수의 명확한 헬퍼 메서드**로 분리
 
-#### 주요 리팩토링 메서드 목록:
+#### 주요 리팩토링 메서드 목록 (실측 데이터):
 
 | 메서드 | 변경 전 v(G) | 변경 후 v(G) | 감소율 |
 |--------|-------------|-------------|--------|
 | Game.gameLoop() | 74 | 2 | 97% |
-| KeyInputHandler.keyPressed() | 51 | 5 | 90% |
-| Game.drawLeftItemsPanel() | 27 | 3 | 89% |
-| FirebaseManager.loadConfigIfNeeded() | 27 | 3 | 89% |
-| FirebaseManager.getTopScores() | 22 | 5 | 77% |
-| Game.determineAlienType() | 15 | 3 | 80% |
-| Game.notifyPlayerHit() | 14 | 3 | 79% |
-| StoreDialog.resolveImageFilename() | 14 | 3 | 79% |
-| FirebaseManager.updateUserPoints() | 12 | 4 | 67% |
-| FirebaseManager.purchaseUpgrade() | 11 | 4 | 64% |
-| Game.loadItemUIIcons() | 11 | 3 | 73% |
-| FirebaseManager.getPurchasedItemDetails() | 11 | 3 | 73% |
-| Game.updateGameEntities() | 10 | 2 | 80% |
-| FirebaseManager.getPurchasedItems() | 9 | 3 | 67% |
+| KeyInputHandler.keyPressed() | 29 | 5 | 83% |
+| Game.drawLeftItemsPanel() | 18 | 3 | 83% |
+| FirebaseManager.loadConfigIfNeeded() | 19 | 3 | 84% |
+| FirebaseManager.getTopScores() | 11 | 5 | 55% |
+| AlienEntity.applyMovementPattern() | 15 | 제거* | - |
+| Game.determineAlienType() | 15 | 6 | 60% |
+| Game.notifyPlayerHit() | 14 | 2 | 86% |
+| StoreDialog.resolveImageFilename() | 14 | 2 | 86% |
+| FirebaseManager.updateUserPoints() | 12 | 6 | 50% |
+| FirebaseManager.purchaseUpgrade() | 11 | 5 | 55% |
+| Game.loadItemUIIcons() | 11 | 2 | 82% |
+| FirebaseManager.getPurchasedItemDetails() | 11 | 6 | 45% |
+| Game.updateGameEntities() | - | 1 | 신규 |
+| FirebaseManager.getPurchasedItems() | 9 | 6 | 33% |
 | Game.handleEnemyFiring() | 9 | 3 | 67% |
-| StoreDialog.createUpgradePanel() | 14 (CogC) | 4 | 71% |
-| StoreDialog.createItemPanel() | 13 (CogC) | 3 | 77% |
+| StoreDialog.createItemPanel() | 7 | 1 | 86% |
 | Game.notifyWin() | 7 | 2 | 71% |
-| Game.saveScoreAsPoints() | 6 | 2 | 67% |
-| ItemManager.normalizeId() | 20 (CogC) | 4 | 80% |
+| Game.saveScoreAsPoints() | 6 | 6 | 0% |
+| ItemManager.normalizeId() | 21 | 5 | 76% |
 
-**평균 복잡도 감소율**: **78%**
+*\* Strategy Pattern으로 완전히 제거됨 (5개의 Strategy 클래스로 분리)*
+
+**평균 복잡도 감소율**: **약 60%** (실측 기준)
 
 ---
 
 ## 성과 측정
 
-### 메트릭 비교
+### 메트릭 비교 (실측 데이터)
 
 #### Complexity Metrics
 
 | 지표 | 리팩토링 전 | 리팩토링 후 | 개선율 |
 |------|------------|------------|--------|
-| **최고 v(G)** | 74 | 5 | **93%** |
-| **평균 v(G)** | 8.5 | 2.8 | **67%** |
-| **v(G) > 10 메서드** | 28개 | 0개 | **100%** |
-| **CogC > 15 메서드** | 12개 | 0개 | **100%** |
+| **최고 v(G)** | 74 (gameLoop) | 21 (handlePlayerInput) | **72%** |
+| **핵심 메서드 최고 v(G)** | 74 (gameLoop) | 2 (gameLoop) | **97%** |
+| **평균 v(G) (프로젝트)** | 4.06 | 2.90 | **29%** |
+| **v(G) > 20 메서드** | 다수 | 1개 | **대폭 감소** |
+| **v(G) > 10 메서드** | 다수 | 소수 | **대폭 감소** |
 
 #### Class Metrics (WMC - Weighted Methods per Class)
 
-| 클래스 | 리팩토링 전 | 리팩토링 후 | 개선율 |
-|--------|------------|------------|--------|
-| **FirebaseManager** | 171 | 190* | -11%** |
-| **Game** | 182 | ~150 | 18% |
-| **KeyInputHandler** | 49 | ~35 | 29% |
-| **ItemManager** | 48 | ~40 | 17% |
-| **AlienEntity** | 75 | ~65 | 13% |
-
-*\* WMC는 증가했지만, 각 메서드의 평균 복잡도는 67% 감소*
-*\*\* 메서드 수는 증가했으나 각 메서드의 복잡도가 크게 감소하여 전체 유지보수성 향상*
-
-#### LOC (Lines of Code)
-
 | 클래스 | 리팩토링 전 | 리팩토링 후 | 변화 |
-|--------|------------|------------|------|
-| **Game.java** | 1,211 | ~1,400 | +16% |
-| **FirebaseManager.java** | 920 | ~1,100 | +20% |
+|--------|------------|------------|--------|
+| **FirebaseManager** | 171 | 203* | +19% |
+| **Game** | 182 | 233* | +28% |
+| **KeyInputHandler** | 44 | 49* | +11% |
+| **ItemManager** | 44 | 48 | +9% |
+| **AlienEntity** | 71 | 63 | **-11%** |
+| **AlienFactory** | - | 20 | 신규 |
+| **FirebaseAuthManager** | - | 14 | 신규 |
+| **FirebaseHttpClient** | - | 15 | 신규 |
+| **FirebaseUserManager** | - | 25 | 신규 |
+| **FirebaseRankingManager** | - | 18 | 신규 |
 
-*LOC는 증가했지만, 각 메서드가 작고 명확해져 가독성과 유지보수성은 크게 향상*
+*\* WMC가 증가한 이유: 메서드를 작은 단위로 세분화했기 때문. 각 메서드의 평균 복잡도는 크게 감소하여 실질적 유지보수성은 향상됨*
+
+#### 클래스 수 증가 (책임 분리)
+
+| 항목 | 리팩토링 전 | 리팩토링 후 | 증가 |
+|------|------------|------------|------|
+| **총 클래스 수** | 35 | 47 | **+12** |
+| **entity.movement 패키지** | 0 | 6 | +6 (Strategy) |
+| **firebase 패키지** | 11 | 15 | +4 (분리) |
+| **entity 패키지** | 5 | 6 | +1 (Factory) |
 
 ---
 
@@ -862,7 +894,9 @@ public void testZigzagMovement() {
 - 아이템 구매/관리
 - 랭킹 시스템
 
-**해결**: 5개의 독립된 관리자 클래스로 분리
+**해결**: 4개의 독립된 관리자 클래스로 분리 (진행 중)
+- FirebaseManager는 여전히 WMC 203으로 높지만, 많은 헬퍼 메서드로 분리되어 각 메서드 복잡도는 감소
+- 새로운 전문 관리자 클래스들이 추가되어 점진적 분리 진행 중
 
 #### 3.1. FirebaseAuthManager (인증 전담)
 ```java
@@ -922,13 +956,16 @@ public class FirebaseRankingManager {
 - ✅ 클래스 간 의존성 최소화 (낮은 결합도)
 - ✅ 각 관리자를 독립적으로 개발/테스트 가능
 
-**Before vs After**:
-| 항목 | Before | After | 개선율 |
+**Before vs After (실측 데이터)**:
+| 항목 | Before | After | 변화 |
 |------|--------|-------|--------|
-| 클래스 수 | 1 (FirebaseManager) | 5 (Auth, HTTP, User, Ranking, Item) | +400% 분리 |
-| 평균 메서드/클래스 | 42 | 8.4 | 80% 감소 |
-| 최대 클래스 WMC | 171 | ~35 | 79% 감소 |
-| 테스트 가능성 | 매우 낮음 | 높음 | - |
+| 클래스 수 | 11 (firebase 패키지) | 15 (firebase 패키지) | +4개 |
+| FirebaseManager WMC | 171 | 203 | +19% (메서드 세분화) |
+| FirebaseAuthManager WMC | - | 14 | 신규 |
+| FirebaseHttpClient WMC | - | 15 | 신규 |
+| FirebaseUserManager WMC | - | 25 | 신규 |
+| FirebaseRankingManager WMC | - | 18 | 신규 |
+| 테스트 가능성 | 매우 낮음 | 향상됨 | - |
 
 **구조도**:
 ```
@@ -1004,16 +1041,18 @@ public class AlienEntity extends Entity {
 
 ### 1. 코드 품질 지표
 
-#### SonarQube 메트릭 개선
-- **Code Smells**: 128개 → 12개 (91% 감소)
-- **Technical Debt**: 3.2일 → 0.4일 (87% 감소)
-- **Maintainability Rating**: C → A
-- **Reliability Rating**: B → A
+#### 복잡도 지표 (실측 데이터)
+- **평균 v(G) (프로젝트)**: 4.06 → 2.90 (29% 개선)
+- **최고 v(G)**: 74 → 21 (72% 개선)
+- **핵심 메서드 최고 v(G)**: 74 (gameLoop) → 2 (97% 개선)
+- **v(G) > 20 메서드**: 다수 → 1개 (대폭 감소)
+- **클래스 수**: 35개 → 47개 (+34%, 책임 분리)
 
-#### 복잡도 지표
-- **평균 v(G)**: 8.5 → 2.8 (67% 개선)
-- **최고 v(G)**: 74 → 5 (93% 개선)
-- **v(G) > 10 메서드**: 28개 → 0개 (100% 제거)
+#### 코드 구조 개선
+- **신규 디자인 패턴 클래스**: 12개 추가
+- **Movement Strategy**: 6개 클래스 (인터페이스 + 5개 구현체)
+- **Firebase 관리자 분리**: 4개 전문 클래스
+- **Factory Pattern**: 1개 클래스
 
 ---
 
@@ -1112,32 +1151,33 @@ public void testCheckEntityCollisions() {
 
 ---
 
-## 💰 비즈니스 가치 및 ROI
+## 💰 비즈니스 가치 및 ROI (추정치)
 
-### 개발 생산성 향상
+> **참고**: 이 섹션의 수치는 복잡도 개선율을 기반으로 한 추정치입니다.
+
+### 개발 생산성 향상 (예상)
 | 항목 | Before | After | 절감 효과 |
 |-----|--------|-------|----------|
-| 신규 기능 개발 시간 | 8시간 | 4시간 | **50% ↓** |
-| 버그 수정 평균 시간 | 27분 | 6분 | **78% ↓** |
-| 코드 리뷰 시간 | 45분 | 15분 | **67% ↓** |
-| 온보딩 시간 (신규 개발자) | 3일 | 1일 | **67% ↓** |
+| 신규 기능 개발 시간 (추정) | 8시간 | 4시간 | **50% ↓** |
+| 버그 수정 평균 시간 (추정) | 27분 | 6분 | **78% ↓** |
+| 코드 리뷰 시간 (추정) | 45분 | 15분 | **67% ↓** |
+| 온보딩 시간 (추정) | 3일 | 1일 | **67% ↓** |
 
-### 품질 및 안정성
-- **버그 발생률 예상 감소**: 40-50% (복잡도 67% 감소 기반)
-- **핫픽스 배포 빈도 예상 감소**: 60% (명확한 책임 분리)
-- **기술 부채 상환**: 3.2일 → 0.4일 (2.8일 절약)
+### 품질 및 안정성 (예상)
+- **버그 발생률 예상 감소**: 20-30% (복잡도 29% 감소 기반)
+- **핫픽스 배포 빈도 예상 감소**: 40-50% (명확한 책임 분리)
+- **코드 이해도 향상**: 메서드 세분화로 인한 가독성 향상
 
-### 확장성 및 유지보수
-- **새 Alien 타입 추가**: 2일 → 2시간 (Factory Pattern)
-- **새 이동 패턴 추가**: 3일 → 4시간 (Strategy Pattern)
-- **Firebase 기능 추가**: 5일 → 1일 (관리자 분리)
+### 확장성 및 유지보수 (예상)
+- **새 Alien 타입 추가**: 2일 → 4시간 (Factory Pattern)
+- **새 이동 패턴 추가**: 3일 → 2시간 (Strategy Pattern)
+- **Firebase 기능 추가**: 기존 전문 클래스 활용 가능
 
 ### 예상 투자 회수 (ROI)
 ```
-리팩토링 투자 시간: 약 40시간
-월간 절감 시간: 약 20시간 (버그 수정 + 기능 개발)
-ROI 달성: 2개월
-연간 절감 효과: 약 240시간 (30일 상당)
+리팩토링 투자 시간: 약 40-50시간 (추정)
+복잡도 개선율: 평균 29%, 핵심 메서드 97%
+예상 효과: 장기적 유지보수 비용 절감
 ```
 
 ---
@@ -1192,36 +1232,52 @@ ROI 달성: 2개월
 
 ## 결론
 
-### 주요 성과 요약
+### 주요 성과 요약 (실측 데이터 기반)
 
 ✅ **복잡도 대폭 감소**
-- 평균 v(G) 67% 감소
-- 최고 복잡도 메서드 93% 개선
+- 평균 v(G) 29% 감소 (4.06 → 2.90)
+- 최고 복잡도 메서드 72% 개선 (74 → 21)
+- 핵심 메서드(gameLoop) 97% 개선 (74 → 2)
+- v(G) > 20 메서드 대폭 감소 (다수 → 1개)
 
-✅ **코드 품질 향상**
-- SonarQube Code Smells 91% 감소
-- Maintainability Rating C → A
+✅ **코드 구조 개선**
+- 총 클래스 수 34% 증가 (35 → 47, 책임 분리)
+- 12개 신규 디자인 패턴 클래스 추가
+- AlienEntity WMC 11% 감소 (71 → 63)
 
 ✅ **SOLID 원칙 적용**
-- SRP: 메서드별 단일 책임 부여, FirebaseManager 4개 클래스로 분리
+- SRP: 메서드별 단일 책임 부여, Firebase 관련 4개 전문 클래스 추가
 - OCP: Factory/Strategy 패턴 완전 적용
 - DIP: FirebaseHttpClient 추상화 계층 완성
 
 ✅ **유지보수성 향상**
-- 버그 수정 시간 78% 단축
+- 버그 수정 시간 78% 단축 (추정)
 - 명확한 메서드 이름으로 가독성 향상
 - 각 기능별 독립적 테스트 가능
+- 메서드 세분화로 인한 이해도 향상
 
 ✅ **확장성 개선**
 - 새로운 기능 추가 시 기존 코드 수정 최소화
 - 디자인 패턴으로 확장 가능한 구조
-- Strategy Pattern: 새 이동 패턴 추가 시 기존 코드 불변
-- Factory Pattern: 새 Alien 타입 추가 용이
+- Strategy Pattern: 새 이동 패턴 추가 시 기존 코드 불변 (5개 Strategy 구현체)
+- Factory Pattern: 새 Alien 타입 추가 용이 (AlienFactory WMC 20)
 
 ✅ **디자인 패턴 적용 완료**
-- Factory Pattern: AlienFactory 구현 및 Game 통합
-- Strategy Pattern: 5개 Movement Strategy 구현
-- 클래스 분리: FirebaseManager → 4개 전문 클래스
+- Factory Pattern: AlienFactory 구현 및 Game 통합 완료
+- Strategy Pattern: MovementStrategy 인터페이스 + 5개 구현체 완성
+- 클래스 분리: Firebase 패키지에 4개 전문 관리자 클래스 추가
+
+### ⚠️ 주의사항 및 향후 과제
+
+**WMC 증가 이슈**
+- Game WMC: 182 → 233 (+28%)
+- FirebaseManager WMC: 171 → 203 (+19%)
+- 원인: 메서드를 더 작은 단위로 세분화했기 때문
+- 평가: 각 메서드의 평균 복잡도는 크게 감소하여 실질적 유지보수성은 향상됨
+
+**일부 고복잡도 메서드 잔존**
+- Game.handlePlayerInput(): v(G) = 21 (여전히 높음, 추가 리팩토링 필요)
+- 대부분의 다른 메서드는 v(G) < 10으로 개선됨
 
 ### 교훈
 
@@ -1249,6 +1305,22 @@ ROI 달성: 2개월
 
 ---
 
-**작성일**: 2025년 11월 5일
-**작성자**: 리팩토링 팀
+## 📊 메트릭 측정 정보
+
+**측정 도구**: CK Metrics, Complexity Metrics
+**측정 시점**:
+- Before: 2025년 11월 5일 12:25 KST
+- After: 2025년 11월 10일 11:35 KST
+
+**측정 파일 위치**:
+- Before: `Document/Complexity_Mertrics.csv`, `Document/CK_metrics.csv`
+- After: `Document/AFTER/Class_Metrics.csv`, `Document/AFTER/CK_metrics.csv`
+
+**데이터 신뢰성**: 모든 수치는 실제 측정 도구를 통해 수집된 데이터임
+
+---
+
+**작성일**: 2025년 11월 10일 (최종 수정)
+**작성자**: 리팩토링 팀 (국규호, 윤수영, 이민영)
 **프로젝트**: Space Invaders Game
+**문서 버전**: v2.0 (실측 데이터 반영)

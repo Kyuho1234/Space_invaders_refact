@@ -8,6 +8,10 @@ import java.io.IOException;
  * SRP (Single Responsibility Principle) 적용
  */
 public class FirebaseAuthManager {
+    // String constants
+    private static final String FIELD_EMAIL = "email";
+    private static final String FIELD_RETURN_SECURE_TOKEN = "returnSecureToken";
+
     private final FirebaseHttpClient httpClient;
     private final String apiKey;
 
@@ -49,9 +53,9 @@ public class FirebaseAuthManager {
     public boolean signInWithEmailPassword(String email, String password) {
         try {
             JSONObject body = new JSONObject()
-                    .put("email", email)
+                    .put(FIELD_EMAIL, email)
                     .put("password", password)
-                    .put("returnSecureToken", true);
+                    .put(FIELD_RETURN_SECURE_TOKEN, true);
 
             String url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + apiKey;
             JSONObject res = httpClient.post(url, body);
@@ -68,9 +72,9 @@ public class FirebaseAuthManager {
     public boolean signUpWithEmailPassword(String email, String password) {
         try {
             JSONObject body = new JSONObject()
-                    .put("email", email)
+                    .put(FIELD_EMAIL, email)
                     .put("password", password)
-                    .put("returnSecureToken", true);
+                    .put(FIELD_RETURN_SECURE_TOKEN, true);
 
             String url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + apiKey;
             JSONObject res = httpClient.post(url, body);
@@ -91,7 +95,7 @@ public class FirebaseAuthManager {
             JSONObject body = new JSONObject()
                     .put("idToken", idToken)
                     .put("displayName", displayName)
-                    .put("returnSecureToken", true);
+                    .put(FIELD_RETURN_SECURE_TOKEN, true);
 
             String url = "https://identitytoolkit.googleapis.com/v1/accounts:update?key=" + apiKey;
             JSONObject res = httpClient.post(url, body);
@@ -106,7 +110,7 @@ public class FirebaseAuthManager {
         this.idToken = res.optString("idToken", null);
         this.refreshToken = res.optString("refreshToken", null);
         this.localId = res.optString("localId", null);
-        this.email = res.optString("email", null);
+        this.email = res.optString(FIELD_EMAIL, null);
 
         long expiresInSec = 0L;
         try {

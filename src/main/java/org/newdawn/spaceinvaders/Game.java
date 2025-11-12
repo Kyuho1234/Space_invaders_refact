@@ -47,6 +47,11 @@ import org.newdawn.spaceinvaders.items.ItemManager;
  * @author Kevin Glass
  */
 public class Game extends Canvas {
+	// String constants
+	private static final String FONT_ARIAL = FONT_ARIAL;
+	private static final String MOVEMENT_PATTERN_NORMAL = "normal";
+	private static final String PRESS_ANY_KEY_MESSAGE = PRESS_ANY_KEY_MESSAGE;
+
 	/** The stragey that allows us to use accelerate page flipping */
 	private transient BufferStrategy strategy;
 	/** True if the game is currently "running", i.e. the game loop is looping */
@@ -173,11 +178,11 @@ public class Game extends Canvas {
 
 		// get hold the content of the frame and set up the resolution of the game
 		JPanel panel = (JPanel) container.getContentPane();
-		panel.setPreferredSize(new Dimension(800,600));
+		panel.setPreferredSize(new Dimension(1200,900));
 		panel.setLayout(null);
 
 		// setup our canvas size and put it into the content of the frame
-		setBounds(0,0,800,600);
+		setBounds(0,0,1200,900);
 		panel.add(this);
 
 		// Tell AWT not to bother repainting our canvas since we're
@@ -363,11 +368,11 @@ public class Game extends Canvas {
 		switch(stage) {
 			case 1:
 				// Stage 1: Basic formation - 1 BASIC alien for testing
-				createAlienFormation(1, 1, 350, 100, 50, 30, "normal");
+				createAlienFormation(1, 1, 350, 100, 50, 30, MOVEMENT_PATTERN_NORMAL);
 				break;
 			case 2:
 				// Stage 2: 1 BASIC + 1 FAST alien for testing
-				createAlienFormation(1, 2, 300, 100, 100, 30, "normal");
+				createAlienFormation(1, 2, 300, 100, 100, 30, MOVEMENT_PATTERN_NORMAL);
 				break;
 			case 3:
 				// Stage 3: 3 different types for testing
@@ -379,13 +384,13 @@ public class Game extends Canvas {
 				break;
 			case 5:
 				// Stage 5: 2 random aliens + boss for testing
-				createAlienFormation(1, 2, 200, 120, 200, 35, "normal");
+				createAlienFormation(1, 2, 200, 120, 200, 35, MOVEMENT_PATTERN_NORMAL);
 				// Boss will be added separately
 				createBossAlien();
 				break;
 			default:
 				// Default to Stage 1 formation for any unexpected stage value
-				createAlienFormation(1, 1, 350, 100, 50, 30, "normal");
+				createAlienFormation(1, 1, 350, 100, 50, 30, MOVEMENT_PATTERN_NORMAL);
 				break;
 		}
 	}
@@ -855,21 +860,55 @@ public class Game extends Canvas {
 
 	/** Try multiple classpath variants to load an image resource; logs if not found */
 	private Image loadImageResource(String... candidates) {
-		for (String raw : candidates) {
-			if (raw == null || raw.isEmpty()) continue;
-			String[] probes = new String[] { raw, "/" + raw };
-			for (String p : probes) {
-				URL url = Game.class.getResource(p);
-				if (url == null) {
-					url = Thread.currentThread().getContextClassLoader().getResource(p.startsWith("/") ? p.substring(1) : p);
-				}
-				if (url != null) {
-					return new ImageIcon(url).getImage();
-				}
+		for (String candidate : candidates) {
+			Image image = tryLoadImageCandidate(candidate);
+			if (image != null) {
+				return image;
 			}
 		}
 		System.out.println("[WARN] Image resource not found: " + java.util.Arrays.toString(candidates));
 		return null;
+	}
+
+	/**
+	 * Try to load image from a single candidate path
+	 */
+	private Image tryLoadImageCandidate(String candidate) {
+		if (candidate == null || candidate.isEmpty()) {
+			return null;
+		}
+
+		String[] probes = new String[] { candidate, "/" + candidate };
+		for (String probe : probes) {
+			Image image = tryLoadImageFromProbe(probe);
+			if (image != null) {
+				return image;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Try to load image from a specific probe path
+	 */
+	private Image tryLoadImageFromProbe(String probe) {
+		URL url = findResourceURL(probe);
+		if (url != null) {
+			return new ImageIcon(url).getImage();
+		}
+		return null;
+	}
+
+	/**
+	 * Find resource URL using class loader and context class loader
+	 */
+	private URL findResourceURL(String path) {
+		URL url = Game.class.getResource(path);
+		if (url == null) {
+			String adjustedPath = path.startsWith("/") ? path.substring(1) : path;
+			url = Thread.currentThread().getContextClassLoader().getResource(adjustedPath);
+		}
+		return url;
 	}
 
 	/** Load item icons from resources matching itemUIList order */
@@ -1181,7 +1220,7 @@ public class Game extends Canvas {
 		// Draw the player label (e.g., "P1") above the bar if provided
 		if (label != null) {
 			g2.setColor(Color.WHITE);
-			g2.setFont(new Font("Arial", Font.BOLD, 14));
+			g2.setFont(new Font(FONT_ARIAL, Font.BOLD, 14));
 			FontMetrics fm = g2.getFontMetrics();
 			g2.drawString(label, x0, y0 - fm.getHeight() / 2);
 		}
@@ -1315,7 +1354,7 @@ public class Game extends Canvas {
 	private void drawGame(Graphics2D g) {
 		// Clear screen
 		g.setColor(Color.black);
-		g.fillRect(0, 0, 800, 600);
+		g.fillRect(0, 0, 1200, 900);
 
 		// Draw all entities
 		for (Entity entity : entities) {
@@ -1358,21 +1397,21 @@ public class Game extends Canvas {
 	private void drawStageSelectScreen(Graphics2D g) {
 		// 1. 배경 어둡게 처리
 		g.setColor(new Color(0, 0, 0, 200));
-		g.fillRect(0, 0, 800, 600);
+		g.fillRect(0, 0, 1200, 900);
 
 		// 2. 제목 그리기
 		String title = "SELECT NEXT STAGE";
 		g.setColor(Color.WHITE);
-		g.setFont(new Font("Arial", Font.BOLD, 36));
+		g.setFont(new Font(FONT_ARIAL, Font.BOLD, 36));
 		FontMetrics fmTitle = g.getFontMetrics();
-		g.drawString(title, (800 - fmTitle.stringWidth(title)) / 2, 100);
+		g.drawString(title, (1200 - fmTitle.stringWidth(title)) / 2, 100);
 
 		// 3. 스테이지 버튼 그리기 (1단계 ~ 5단계)
 		int btnSize = 60;
 		int gap = 20;
 		int totalStages = 5;
 		int totalW = totalStages * btnSize + (totalStages - 1) * gap;
-		int startX = (800 - totalW) / 2;
+		int startX = (1200 - totalW) / 2;
 		int startY = 200;
 
 		for (int stage = 1; stage <= totalStages; stage++) {
@@ -1400,7 +1439,7 @@ public class Game extends Canvas {
 			// 버튼 텍스트 (스테이지 번호)
 			String stageNum = String.valueOf(stage);
 			g.setColor(Color.BLACK);
-			g.setFont(new Font("Arial", Font.BOLD, 24));
+			g.setFont(new Font(FONT_ARIAL, Font.BOLD, 24));
 			FontMetrics fmBtn = g.getFontMetrics();
 			g.drawString(stageNum, x + (btnSize - fmBtn.stringWidth(stageNum)) / 2, startY + fmBtn.getAscent() + 10);
 
@@ -1418,13 +1457,13 @@ public class Game extends Canvas {
 		// 안내 메시지
 		String info = "Use Left/Right Arrows to select, Enter to start.";
 		g.setColor(Color.WHITE);
-		g.setFont(new Font("Arial", Font.PLAIN, 18));
+		g.setFont(new Font(FONT_ARIAL, Font.PLAIN, 18));
 		FontMetrics fmInfo = g.getFontMetrics();
-		g.drawString(info, (800 - fmInfo.stringWidth(info)) / 2, 500);
+		g.drawString(info, (1200 - fmInfo.stringWidth(info)) / 2, 500);
 
 		// 폰트와 색상 복구 (안전성)
 		g.setColor(Color.white);
-		g.setFont(new Font("Arial", Font.PLAIN, 12));
+		g.setFont(new Font(FONT_ARIAL, Font.PLAIN, 12));
 	}
 
 	/**
@@ -1433,14 +1472,14 @@ public class Game extends Canvas {
 	private void drawPausePrompt(Graphics2D g) {
 		// dim background
 		g.setColor(new Color(0, 0, 0, 160));
-		g.fillRect(0, 0, 800, 600);
+		g.fillRect(0, 0, 1200, 900);
 		g.setColor(Color.white);
 		String pts = String.format("%03d", Math.max(0, score));
 		String l1 = "여기서 멈춘다면 " + pts + " 포인트를 얻습니다.";
 		String l2 = "메인메뉴로 나가려면 ESC, 계속 플레이하려면 SPACE를 누르십시오.";
 		FontMetrics fm = g.getFontMetrics();
-		g.drawString(l1, (800 - fm.stringWidth(l1)) / 2, 260);
-		g.drawString(l2, (800 - fm.stringWidth(l2)) / 2, 300);
+		g.drawString(l1, (1200 - fm.stringWidth(l1)) / 2, 260);
+		g.drawString(l2, (1200 - fm.stringWidth(l2)) / 2, 300);
 	}
 
 	/**
@@ -1452,13 +1491,13 @@ public class Game extends Canvas {
 		FontMetrics fm = g.getFontMetrics();
 
 		// 1. 주 메시지 출력
-		g.drawString(mainMessage, (800 - fm.stringWidth(mainMessage)) / 2, 250);
-		g.drawString("Press any key", (800 - fm.stringWidth("Press any key")) / 2, 300);
+		g.drawString(mainMessage, (1200 - fm.stringWidth(mainMessage)) / 2, 250);
+		g.drawString(PRESS_ANY_KEY_MESSAGE, (1200 - fm.stringWidth(PRESS_ANY_KEY_MESSAGE)) / 2, 300);
 
 		// 2. 최고 점수 안내문 표시
 		if (newHighScoreAchieved) {
 			g.setColor(Color.YELLOW);
-			g.setFont(new Font("Arial", Font.BOLD, 30));
+			g.setFont(new Font(FONT_ARIAL, Font.BOLD, 30));
 
 			// message 변수가 이미 설정된 상태이므로, 'score' 변수는 아직 초기화되지 않은
 			// 최종 점수 값을 가지고 있습니다. (notifyDeath/Win에서 score=0 전에 호출됨)
@@ -1466,50 +1505,68 @@ public class Game extends Canvas {
 
 			FontMetrics fm30 = g.getFontMetrics();
 			// Y 좌표 400에 출력 (기존 메시지 아래)
-			g.drawString(highMsg, (800 - fm30.stringWidth(highMsg)) / 2, 400);
+			g.drawString(highMsg, (1200 - fm30.stringWidth(highMsg)) / 2, 400);
 		}
 
 		// 폰트와 색상 복구 (선택 사항이지만 안전합니다)
 		g.setColor(Color.white);
-		g.setFont(new Font("Arial", Font.PLAIN, 12)); // 원래 폰트로 복구 (Game.java에서 기본 폰트 설정이 필요할 수 있음)
+		g.setFont(new Font(FONT_ARIAL, Font.PLAIN, 12)); // 원래 폰트로 복구 (Game.java에서 기본 폰트 설정이 필요할 수 있음)
 	}
 
 	/**
 	 * Handle player input during gameplay
 	 */
 	private void handlePlayerInput() {
-		// 💡 1P 조작 (움직임과 발사)
-		// ship 객체가 null이 아니고, 게임 플레이 상태이며 플레이어가 살아있을 때만 조작을 처리합니다.
-		if (ship != null && playerHealth > 0 && !waitingForKeyPress && !pausePromptActive && !stageSelectActive) {
-			// 움직임 처리
-			ship.setHorizontalMovement(0);
-			if (leftPressed && !rightPressed) {
-				ship.setHorizontalMovement(-moveSpeed);
-			} else if (rightPressed && !leftPressed) {
-				ship.setHorizontalMovement(moveSpeed);
-			}
+		handlePlayer1Input();
+		handlePlayer2Input();
+	}
 
-			// 발사 처리
-			if (firePressed) {
-				tryToFireFrom(ship, 0);
-			}
+	/**
+	 * Handle player 1 input (movement and firing)
+	 */
+	private void handlePlayer1Input() {
+		if (!canPlayerControlShip(ship, playerHealth)) {
+			return;
 		}
 
-		// 💡 2P 조작 (움직임과 발사)
-		// ship2 객체가 null이 아니고, 게임 플레이 상태이며 플레이어가 살아있을 때만 조작을 처리합니다.
-		if (ship2 != null && player2Health > 0 && !waitingForKeyPress && !pausePromptActive && !stageSelectActive) {
-			// 움직임 처리
-			ship2.setHorizontalMovement(0);
-			if (leftPressed2 && !rightPressed2) {
-				ship2.setHorizontalMovement(-moveSpeed);
-			} else if (rightPressed2 && !leftPressed2) {
-				ship2.setHorizontalMovement(moveSpeed);
-			}
+		updateShipMovement(ship, leftPressed, rightPressed);
 
-			// 발사 처리
-			if (firePressed2) {
-				tryToFireFrom(ship2, 1);
-			}
+		if (firePressed) {
+			tryToFireFrom(ship, 0);
+		}
+	}
+
+	/**
+	 * Handle player 2 input (movement and firing)
+	 */
+	private void handlePlayer2Input() {
+		if (!canPlayerControlShip(ship2, player2Health)) {
+			return;
+		}
+
+		updateShipMovement(ship2, leftPressed2, rightPressed2);
+
+		if (firePressed2) {
+			tryToFireFrom(ship2, 1);
+		}
+	}
+
+	/**
+	 * Check if player can control the ship
+	 */
+	private boolean canPlayerControlShip(ShipEntity ship, int health) {
+		return ship != null && health > 0 && !waitingForKeyPress && !pausePromptActive && !stageSelectActive;
+	}
+
+	/**
+	 * Update ship movement based on key presses
+	 */
+	private void updateShipMovement(ShipEntity ship, boolean leftPressed, boolean rightPressed) {
+		ship.setHorizontalMovement(0);
+		if (leftPressed && !rightPressed) {
+			ship.setHorizontalMovement(-moveSpeed);
+		} else if (rightPressed && !leftPressed) {
+			ship.setHorizontalMovement(moveSpeed);
 		}
 	}
 
@@ -1625,7 +1682,7 @@ public class Game extends Canvas {
 		public void move(long delta) {
 			super.move(delta);
 			// Remove if off screen
-			if (getY() > 600 || getX() < 0 || getX() > 800) {
+			if (getY() > 900 || getX() < 0 || getX() > 1200) {
 				removeList.add(this);
 			}
 		}
@@ -1866,6 +1923,10 @@ public class Game extends Canvas {
 	 * @param argv The arguments that are passed into our game
 	 */
 	public static void main(String argv[]) {
+		// Enable DPI scaling support for high-resolution displays
+		// This makes the window appear at the correct size on high-DPI monitors
+		System.setProperty("sun.java2d.uiScale", "1.0");
+
 		Game g = new Game();
 
 		// Start the main game loop, note: this method will not

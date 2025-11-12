@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(where mvn:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -98,8 +98,8 @@ public class MainMenu extends JFrame {
     private JButton createMenuButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font(FONT_ARIAL, Font.BOLD, 20));
-        button.setForeground(Color.WHITE);
-        button.setBackground(Color.DARK_GRAY);
+        button.setForeground(Color.BLACK);
+        button.setBackground(Color.LIGHT_GRAY);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -107,8 +107,8 @@ public class MainMenu extends JFrame {
         button.setPreferredSize(new Dimension(300, 50));
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) { button.setBackground(Color.GRAY); }
-            public void mouseExited (java.awt.event.MouseEvent evt) { button.setBackground(Color.DARK_GRAY); }
+            public void mouseEntered(java.awt.event.MouseEvent evt) { button.setBackground(Color.WHITE); }
+            public void mouseExited (java.awt.event.MouseEvent evt) { button.setBackground(Color.LIGHT_GRAY); }
         });
         return button;
     }

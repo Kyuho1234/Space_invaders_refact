@@ -19,7 +19,7 @@ public class StoreDialog extends JDialog {
     private static final String FONT_ARIAL = "Arial";
     private static final String ERROR_TEXT = "Error";
 
-    private final FirebaseManager firebaseManager;
+    private final transient FirebaseManager firebaseManager;
     private JLabel pointsLabel;
 
     public StoreDialog(JFrame parent) {

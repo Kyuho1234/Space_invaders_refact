@@ -23,7 +23,7 @@ public class RankingDialog extends JDialog {
     private JButton closeButton;
 
     // 🚀 FirebaseManager 인스턴스를 가져옵니다.
-    private final FirebaseManager firebaseManager = FirebaseManager.getInstance();
+    private final transient FirebaseManager firebaseManager = FirebaseManager.getInstance();
     private final int RANKING_LIMIT = 20; // 상위 20명만 가져오도록 제한
 
     public RankingDialog(Frame parent) {

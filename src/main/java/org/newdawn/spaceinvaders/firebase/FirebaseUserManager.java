@@ -17,6 +17,9 @@ public class FirebaseUserManager {
     private static final String FIELD_FIELDS = "fields";
     private static final String FIELD_MAX_CLEARED_STAGE = "max_cleared_stage";
 
+    private static final String PATH_USERS = "/users/";
+    private static final String PARAM_KEY = "?key=";
+
     private final FirebaseHttpClient httpClient;
     private final String projectId;
     private final String apiKey;
@@ -39,7 +42,7 @@ public class FirebaseUserManager {
         if (localId == null || documentsBase == null) return false;
 
         try {
-            String url = documentsBase + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject existing = httpClient.get(url);
             if (existing == null || !existing.has(FIELD_FIELDS)) return false;
 
@@ -100,7 +103,7 @@ public class FirebaseUserManager {
         if (localId == null || documentsBase == null) return 0;
 
         try {
-            String url = documentsBase + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject doc = httpClient.get(url);
             if (doc != null && doc.has(FIELD_FIELDS)) {
                 JSONObject fields = doc.getJSONObject(FIELD_FIELDS);
@@ -122,7 +125,7 @@ public class FirebaseUserManager {
         if (localId == null || documentsBase == null) return 0;
 
         try {
-            String url = documentsBase + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject doc = httpClient.get(url);
             if (doc != null && doc.has(FIELD_FIELDS)) {
                 JSONObject fields = doc.getJSONObject(FIELD_FIELDS);
@@ -144,7 +147,7 @@ public class FirebaseUserManager {
         if (localId == null || documentsBase == null) return 0;
 
         try {
-            String url = documentsBase + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject doc = httpClient.get(url);
             if (doc != null && doc.has(FIELD_FIELDS)) {
                 JSONObject fields = doc.getJSONObject(FIELD_FIELDS);
@@ -166,7 +169,7 @@ public class FirebaseUserManager {
         if (localId == null || documentsBase == null) return false;
 
         try {
-            String url = documentsBase + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject existing = httpClient.get(url);
             if (existing == null || !existing.has(FIELD_FIELDS)) return false;
 

@@ -30,9 +30,16 @@ public final class FirebaseManager {
     private static final String PATH_PROJECTS = "/projects/";
     private static final String PATH_USERS = "/users/";
     private static final String PATH_ITEMS = "/items";
+    private static final String PATH_DATABASES = "/databases/";
+    private static final String PATH_USERS_QUERY = PATH_USERS_QUERY;
+    private static final String PATH_ITEMS_QUERY = PATH_ITEMS_QUERY;
     private static final String PARAM_KEY = "?key=";
     private static final String PARAM_AND_KEY = "&key=";
     private static final String PARAM_DOCUMENT_ID = "?documentId=";
+
+    private static final String CONFIG_KEY_API_KEY = "apiKey";
+    private static final String CONFIG_KEY_PROJECT_ID = "projectId";
+    private static final String CONFIG_KEY_DATABASE_ID = "databaseId";
 
     private static final String UPGRADE_PREFIX = "upgrade_";
     private static final String UPGRADE_ATTACK = "attack";
@@ -62,7 +69,7 @@ public final class FirebaseManager {
 
     private String documentsBase() {
         if (projectId == null || databaseId == null) return null;
-        return firestoreApiRoot + PATH_PROJECTS + projectId + "/databases/" + databaseId + "/documents";
+        return firestoreApiRoot + PATH_PROJECTS + projectId + PATH_DATABASES + databaseId + "/documents";
     }
 
     public synchronized void setConfig(String apiKey, String projectId) {
@@ -93,21 +100,21 @@ public final class FirebaseManager {
         String envKey = System.getenv("FIREBASE_API_KEY");
         String envProj = System.getenv("FIREBASE_PROJECT_ID");
         String envDb = System.getenv("FIREBASE_DATABASE_ID");
-        applyEnvironmentVariable(envKey, "apiKey");
-        applyEnvironmentVariable(envProj, "projectId");
-        applyEnvironmentVariable(envDb, "databaseId");
+        applyEnvironmentVariable(envKey, CONFIG_KEY_API_KEY);
+        applyEnvironmentVariable(envProj, CONFIG_KEY_PROJECT_ID);
+        applyEnvironmentVariable(envDb, CONFIG_KEY_DATABASE_ID);
     }
 
     private void applyEnvironmentVariable(String value, String fieldName) {
         if (value == null || value.isEmpty()) return;
         switch (fieldName) {
-            case "apiKey":
+            case CONFIG_KEY_API_KEY:
                 this.apiKey = value;
                 break;
-            case "projectId":
+            case CONFIG_KEY_PROJECT_ID:
                 this.projectId = value;
                 break;
-            case "databaseId":
+            case CONFIG_KEY_DATABASE_ID:
                 this.databaseId = value;
                 break;
             default:
@@ -120,9 +127,9 @@ public final class FirebaseManager {
             if (in == null) return;
             Properties p = new Properties();
             p.load(in);
-            applyPropertyValue(p, "apiKey");
-            applyPropertyValue(p, "projectId");
-            applyPropertyValue(p, "databaseId");
+            applyPropertyValue(p, CONFIG_KEY_API_KEY);
+            applyPropertyValue(p, CONFIG_KEY_PROJECT_ID);
+            applyPropertyValue(p, CONFIG_KEY_DATABASE_ID);
         } catch (IOException ignore) {
             // Silently ignore file read errors
         }
@@ -132,13 +139,13 @@ public final class FirebaseManager {
         String value = props.getProperty(fieldName);
         if (value == null || value.isEmpty()) return;
         switch (fieldName) {
-            case "apiKey":
+            case CONFIG_KEY_API_KEY:
                 if (this.apiKey == null) this.apiKey = value;
                 break;
-            case "projectId":
+            case CONFIG_KEY_PROJECT_ID:
                 if (this.projectId == null) this.projectId = value;
                 break;
-            case "databaseId":
+            case CONFIG_KEY_DATABASE_ID:
                 this.databaseId = value;
                 break;
             default:
@@ -190,7 +197,7 @@ public final class FirebaseManager {
     public boolean signUpWithEmailPassword(String email, String password) {
         loadConfigIfNeeded();
         try {
-            JSONObject body = new JSONObject().put("email", email).put("password", password).put("returnSecureToken", true);
+            JSONObject body = new JSONObject().put(FIELD_EMAIL, email).put("password", password).put(FIELD_RETURN_SECURE_TOKEN, true);
             JSONObject res = postJson("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + apiKey, body);
             if (res == null) return false;
             applyAuthResponse(res);
@@ -205,7 +212,7 @@ public final class FirebaseManager {
     public boolean updateDisplayName(String displayName) {
         if (!isLoggedIn()) return false;
         try {
-            JSONObject body = new JSONObject().put("idToken", getIdToken()).put("displayName", displayName).put("returnSecureToken", true);
+            JSONObject body = new JSONObject().put("idToken", getIdToken()).put("displayName", displayName).put(FIELD_RETURN_SECURE_TOKEN, true);
             JSONObject res = postJson("https://identitytoolkit.googleapis.com/v1/accounts:update?key=" + apiKey, body);
             return res != null;
         } catch (Exception e) {
@@ -218,23 +225,23 @@ public final class FirebaseManager {
     private void ensureUserDocExists() {
         if (documentsBase() == null || !isLoggedIn()) return;
         try {
-            String docUrl = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+            String docUrl = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject defaultFields = buildDefaultUserFields();
             JSONObject existing = getJson(docUrl);
 
-            if (existing != null && existing.has("fields")) {
-                JSONObject missing = collectMissingDefaults(existing.optJSONObject("fields"));
+            if (existing != null && existing.has(FIELD_FIELDS)) {
+                JSONObject missing = collectMissingDefaults(existing.optJSONObject(FIELD_FIELDS));
                 patchUserFields(docUrl, missing);
                 return;
             }
 
-            JSONObject body = new JSONObject().put("fields", defaultFields);
-            String createUrl = documentsBase() + "/users?documentId=" + localId + "&key=" + apiKey;
+            JSONObject body = new JSONObject().put(FIELD_FIELDS, defaultFields);
+            String createUrl = documentsBase() + PATH_USERS_QUERY + localId + PARAM_AND_KEY + apiKey;
             JSONObject createRes = postJsonFirestore(createUrl, body);
             if (createRes == null) {
                 JSONObject afterAttempt = getJson(docUrl);
-                if (afterAttempt != null && afterAttempt.has("fields")) {
-                    patchUserFields(docUrl, collectMissingDefaults(afterAttempt.optJSONObject("fields")));
+                if (afterAttempt != null && afterAttempt.has(FIELD_FIELDS)) {
+                    patchUserFields(docUrl, collectMissingDefaults(afterAttempt.optJSONObject(FIELD_FIELDS)));
                 } else {
                     patchUserFields(docUrl, defaultFields);
                 }
@@ -246,24 +253,24 @@ public final class FirebaseManager {
 
     private JSONObject collectMissingDefaults(JSONObject existingFields) {
         JSONObject missing = new JSONObject();
-        if (email != null && (existingFields == null || !existingFields.has("email"))) {
-            missing.put("email", new JSONObject().put("stringValue", email));
+        if (email != null && (existingFields == null || !existingFields.has(FIELD_EMAIL))) {
+            missing.put(FIELD_EMAIL, new JSONObject().put(FIELD_STRING_VALUE, email));
         }
-        if (existingFields == null || !existingFields.has("points")) {
-            missing.put("points", new JSONObject().put("integerValue", "0"));
+        if (existingFields == null || !existingFields.has(FIELD_POINTS)) {
+            missing.put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, "0"));
         }
-        if (existingFields == null || !existingFields.has("highest_score")) {
-            missing.put("highest_score", new JSONObject().put("integerValue", "0"));
+        if (existingFields == null || !existingFields.has(FIELD_HIGHEST_SCORE)) {
+            missing.put(FIELD_HIGHEST_SCORE, new JSONObject().put(FIELD_INTEGER_VALUE, "0"));
         }
         return missing;
     }
 
     private JSONObject buildDefaultUserFields() {
         JSONObject defaults = new JSONObject();
-        if (email != null) defaults.put("email", new JSONObject().put("stringValue", email));
-        defaults.put("points", new JSONObject().put("integerValue", "0"));
-        defaults.put("highest_score", new JSONObject().put("integerValue", "0"));
-        defaults.put("maxClearedStage", new JSONObject().put("integerValue", "0")); 
+        if (email != null) defaults.put(FIELD_EMAIL, new JSONObject().put(FIELD_STRING_VALUE, email));
+        defaults.put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, "0"));
+        defaults.put(FIELD_HIGHEST_SCORE, new JSONObject().put(FIELD_INTEGER_VALUE, "0"));
+        defaults.put(FIELD_MAX_CLEARED_STAGE, new JSONObject().put(FIELD_INTEGER_VALUE, "0")); 
         return defaults;
     }
 
@@ -273,7 +280,7 @@ public final class FirebaseManager {
         for (String fieldName : fields.keySet()) {
             patchUrl.append("&updateMask.fieldPaths=").append(fieldName);
         }
-        JSONObject patchBody = new JSONObject().put("fields", fields);
+        JSONObject patchBody = new JSONObject().put(FIELD_FIELDS, fields);
         patchJson(patchUrl.toString(), patchBody);
     }
 
@@ -281,12 +288,12 @@ public final class FirebaseManager {
         if (!isLoggedIn()) return 0;
         if (documentsBase() == null) return 0;
         try {
-            String url = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject res = getJson(url);
-            if (res != null && res.has("fields")) {
-                JSONObject fields = res.getJSONObject("fields");
-                if (fields.has("points")) {
-                    return fields.getJSONObject("points").getInt("integerValue");
+            if (res != null && res.has(FIELD_FIELDS)) {
+                JSONObject fields = res.getJSONObject(FIELD_FIELDS);
+                if (fields.has(FIELD_POINTS)) {
+                    return fields.getJSONObject(FIELD_POINTS).getInt(FIELD_INTEGER_VALUE);
                 }
             }
         } catch (Exception e) {
@@ -299,11 +306,11 @@ public final class FirebaseManager {
         if (!isLoggedIn() || documentsBase() == null) return false;
 
         try {
-            String url = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject existing = getJson(url);
-            if (existing == null || !existing.has("fields")) return false;
+            if (existing == null || !existing.has(FIELD_FIELDS)) return false;
 
-            JSONObject fields = buildPointsUpdateFields(points, existing.getJSONObject("fields"));
+            JSONObject fields = buildPointsUpdateFields(points, existing.getJSONObject(FIELD_FIELDS));
             return executePointsUpdate(url, fields);
         } catch (Exception e) {
             e.printStackTrace();
@@ -313,27 +320,27 @@ public final class FirebaseManager {
 
     private JSONObject buildPointsUpdateFields(int points, JSONObject existingFields) {
         JSONObject fields = new JSONObject();
-        fields.put("points", new JSONObject().put("integerValue", String.valueOf(points)));
+        fields.put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, String.valueOf(points)));
         preserveExistingCoreFields(fields, existingFields);
         preserveUpgradeFields(fields, existingFields);
         return fields;
     }
 
     private void preserveExistingCoreFields(JSONObject fields, JSONObject existingFields) {
-        if (existingFields.has("email")) {
-            fields.put("email", existingFields.getJSONObject("email"));
+        if (existingFields.has(FIELD_EMAIL)) {
+            fields.put(FIELD_EMAIL, existingFields.getJSONObject(FIELD_EMAIL));
         }
-        if (existingFields.has("highest_score")) {
-            fields.put("highest_score", existingFields.getJSONObject("highest_score"));
+        if (existingFields.has(FIELD_HIGHEST_SCORE)) {
+            fields.put(FIELD_HIGHEST_SCORE, existingFields.getJSONObject(FIELD_HIGHEST_SCORE));
         }
-        if (existingFields.has("maxClearedStage")) {
-            fields.put("maxClearedStage", existingFields.getJSONObject("maxClearedStage"));
+        if (existingFields.has(FIELD_MAX_CLEARED_STAGE)) {
+            fields.put(FIELD_MAX_CLEARED_STAGE, existingFields.getJSONObject(FIELD_MAX_CLEARED_STAGE));
         }
     }
 
     private void preserveUpgradeFields(JSONObject fields, JSONObject existingFields) {
-        for (String type : new String[]{"attack", "health", "speed"}) {
-            String fieldName = "upgrade_" + type;
+        for (String type : new String[]{UPGRADE_ATTACK, UPGRADE_HEALTH, UPGRADE_SPEED}) {
+            String fieldName = UPGRADE_PREFIX + type;
             if (existingFields.has(fieldName)) {
                 fields.put(fieldName, existingFields.getJSONObject(fieldName));
             }
@@ -341,14 +348,14 @@ public final class FirebaseManager {
     }
 
     private boolean executePointsUpdate(String baseUrl, JSONObject fields) throws IOException {
-        JSONObject body = new JSONObject().put("fields", fields);
+        JSONObject body = new JSONObject().put(FIELD_FIELDS, fields);
         String patchUrl = baseUrl + "&updateMask.fieldPaths=points";
         JSONObject res = patchJson(patchUrl, body);
 
         if (res != null) return true;
 
         // Fallback: create document if PATCH failed
-        String createUrl = documentsBase() + "/users?documentId=" + localId + "&key=" + apiKey;
+        String createUrl = documentsBase() + PATH_USERS_QUERY + localId + PARAM_AND_KEY + apiKey;
         JSONObject createRes = postJsonFirestore(createUrl, body);
         return createRes != null;
     }
@@ -367,10 +374,10 @@ public final class FirebaseManager {
         if (!isLoggedIn() || documentsBase() == null) return items;
 
         try {
-            String url = documentsBase() + "/users/" + localId + "/items?key=" + apiKey;
+            String url = documentsBase() + PATH_USERS + localId + PATH_ITEMS_QUERY + apiKey;
             JSONObject res = getJson(url);
-            if (res != null && res.has("documents")) {
-                items = parseItemDetailsFromDocuments(res.getJSONArray("documents"));
+            if (res != null && res.has(FIELD_DOCUMENTS)) {
+                items = parseItemDetailsFromDocuments(res.getJSONArray(FIELD_DOCUMENTS));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -397,18 +404,18 @@ public final class FirebaseManager {
         }
 
         Map<String, String> itemDetail = new HashMap<>();
-        itemDetail.put("itemId", itemId);
+        itemDetail.put(FIELD_ITEM_ID, itemId);
         itemDetail.put("name", doc.getString("name"));
         return itemDetail;
     }
 
     private String extractItemIdFromDocument(JSONObject doc) {
-        if (!doc.has("fields")) return null;
+        if (!doc.has(FIELD_FIELDS)) return null;
 
-        JSONObject fields = doc.getJSONObject("fields");
-        if (!fields.has("itemId")) return null;
+        JSONObject fields = doc.getJSONObject(FIELD_FIELDS);
+        if (!fields.has(FIELD_ITEM_ID)) return null;
 
-        return fields.getJSONObject("itemId").getString("stringValue");
+        return fields.getJSONObject(FIELD_ITEM_ID).getString(FIELD_STRING_VALUE);
     }
 
     public boolean purchaseItem(String itemId, String itemName, int price) {
@@ -426,14 +433,14 @@ public final class FirebaseManager {
         // 2. 아이템 문서 생성 (자동 ID 부여)
         try {
             JSONObject itemFields = new JSONObject()
-                    .put("itemId", new JSONObject().put("stringValue", itemId))
-                    .put("itemName", new JSONObject().put("stringValue", itemName))
+                    .put(FIELD_ITEM_ID, new JSONObject().put(FIELD_STRING_VALUE, itemId))
+                    .put("itemName", new JSONObject().put(FIELD_STRING_VALUE, itemName))
                     .put("purchaseDate", new JSONObject().put("timestampValue", java.time.Instant.now().toString()));
             
-            JSONObject body = new JSONObject().put("fields", itemFields);
+            JSONObject body = new JSONObject().put(FIELD_FIELDS, itemFields);
             
             // POST /.../documents/users/{uid}/items 경로에 요청하여 자동 ID 생성
-            String createUrl = documentsBase() + "/users/" + localId + "/items?key=" + apiKey;
+            String createUrl = documentsBase() + PATH_USERS + localId + PATH_ITEMS_QUERY + apiKey;
             
             // postJsonFirestore는 POST 요청을 사용하여 자동 ID로 새 문서를 만듭니다.
             JSONObject createRes = postJsonFirestore(createUrl, body);
@@ -470,10 +477,10 @@ public final class FirebaseManager {
         if (!isLoggedIn() || documentsBase() == null) return items;
 
         try {
-            String url = documentsBase() + "/users/" + localId + "/items?key=" + apiKey;
+            String url = documentsBase() + PATH_USERS + localId + PATH_ITEMS_QUERY + apiKey;
             JSONObject res = getJson(url);
-            if (res != null && res.has("documents")) {
-                items = extractItemIdsFromDocuments(res.getJSONArray("documents"));
+            if (res != null && res.has(FIELD_DOCUMENTS)) {
+                items = extractItemIdsFromDocuments(res.getJSONArray(FIELD_DOCUMENTS));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -494,12 +501,12 @@ public final class FirebaseManager {
     }
 
     private String extractItemIdFromFields(JSONObject doc) {
-        if (!doc.has("fields")) return null;
+        if (!doc.has(FIELD_FIELDS)) return null;
 
-        JSONObject fields = doc.getJSONObject("fields");
-        if (!fields.has("itemId")) return null;
+        JSONObject fields = doc.getJSONObject(FIELD_FIELDS);
+        if (!fields.has(FIELD_ITEM_ID)) return null;
 
-        return fields.getJSONObject("itemId").getString("stringValue");
+        return fields.getJSONObject(FIELD_ITEM_ID).getString(FIELD_STRING_VALUE);
     }
 
     /**
@@ -519,7 +526,7 @@ public final class FirebaseManager {
         System.out.println("[Firebase] Attempting to DELETE document by name: " + docName);
         
         try {
-            String deleteUrl = firestoreApiRoot + "/" + docName + "?key=" + apiKey;
+            String deleteUrl = firestoreApiRoot + "/" + docName + PARAM_KEY + apiKey;
             return deleteJson(deleteUrl);
         } catch (Exception e) {
             e.printStackTrace();
@@ -545,7 +552,7 @@ public final class FirebaseManager {
         // 1. 메모리에서 원하는 itemId를 가진 첫 번째 문서 (가장 먼저 조회된 = FIFO)를 찾습니다.
         // 대소문자를 무시하고 비교합니다.
         for (Map<String, String> detail : itemDetails) {
-            String storedItemId = detail.get("itemId");
+            String storedItemId = detail.get(FIELD_ITEM_ID);
             if (storedItemId != null && storedItemId.equalsIgnoreCase(itemId)) {
                 docNameToDelete = detail.get("name"); // 고유 문서 이름 획득
                 break;
@@ -569,13 +576,13 @@ public final class FirebaseManager {
         if (!isLoggedIn()) return 0;
         if (documentsBase() == null) return 0;
         try {
-            String url = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject res = getJson(url);
-            if (res != null && res.has("fields")) {
-                JSONObject fields = res.getJSONObject("fields");
-                if (fields.has("highest_score")) {
+            if (res != null && res.has(FIELD_FIELDS)) {
+                JSONObject fields = res.getJSONObject(FIELD_FIELDS);
+                if (fields.has(FIELD_HIGHEST_SCORE)) {
                     // highest_score 필드는 integerValue로 저장되어 있다고 가정합니다.
-                    return fields.getJSONObject("highest_score").getInt("integerValue");
+                    return fields.getJSONObject(FIELD_HIGHEST_SCORE).getInt(FIELD_INTEGER_VALUE);
                 }
             }
         } catch (Exception e) {
@@ -594,19 +601,19 @@ public final class FirebaseManager {
 
             // 최고 점수, 이메일, 그리고 기존 'points' 필드를 포함하여 PATCH 요청
             JSONObject fields = new JSONObject()
-                    .put("highest_score", new JSONObject().put("integerValue", newScore))
-                    .put("email", new JSONObject().put("stringValue", email)) 
-                    .put("points", new JSONObject().put("integerValue", currentPoints)); // 👈 기존 'points' 필드 유지
+                    .put(FIELD_HIGHEST_SCORE, new JSONObject().put(FIELD_INTEGER_VALUE, newScore))
+                    .put(FIELD_EMAIL, new JSONObject().put(FIELD_STRING_VALUE, email)) 
+                    .put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, currentPoints)); // 👈 기존 'points' 필드 유지
 
-            JSONObject body = new JSONObject().put("fields", fields);
-            String url = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+            JSONObject body = new JSONObject().put(FIELD_FIELDS, fields);
+            String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
 
             // PATCH 요청 시도
             JSONObject res = patchJson(url, body);
             if (res != null) return true;
 
             // PATCH 실패 시 (e.g., 문서 부재) POST로 생성 시도 (ensureUserDocExists와 유사)
-            String createUrl = documentsBase() + "/users?documentId=" + localId + "&key=" + apiKey;
+            String createUrl = documentsBase() + PATH_USERS_QUERY + localId + PARAM_AND_KEY + apiKey;
             JSONObject createRes = postJsonFirestore(createUrl, body);
             return createRes != null;
 
@@ -622,7 +629,7 @@ public final class FirebaseManager {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setRequestMethod("DELETE");
         if (idToken != null) {
-            conn.setRequestProperty("Authorization", "Bearer " + idToken);
+            conn.setRequestProperty(HEADER_AUTHORIZATION, HEADER_BEARER + idToken);
         }
         int code = conn.getResponseCode();
         
@@ -640,7 +647,7 @@ public final class FirebaseManager {
     private JSONObject postJson(String urlStr, JSONObject body) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        conn.setRequestProperty(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON);
         conn.setDoOutput(true);
         byte[] out = body.toString().getBytes(StandardCharsets.UTF_8);
         try (OutputStream os = conn.getOutputStream()) { os.write(out); }
@@ -682,7 +689,7 @@ public final class FirebaseManager {
         this.idToken = res.optString("idToken", null);
         this.refreshToken = res.optString("refreshToken", null);
         this.localId = res.optString("localId", null);
-        this.email = res.optString("email", null);
+        this.email = res.optString(FIELD_EMAIL, null);
         long expiresInSec = 0L;
         try { expiresInSec = Long.parseLong(res.optString("expiresIn", "0")); } catch (Exception ignore) {}
         this.expiresAtMs = (expiresInSec > 0) ? System.currentTimeMillis() + expiresInSec * 1000L : 0L;
@@ -692,7 +699,7 @@ public final class FirebaseManager {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setRequestMethod("GET");
         if (idToken != null) {
-            conn.setRequestProperty("Authorization", "Bearer " + idToken);
+            conn.setRequestProperty(HEADER_AUTHORIZATION, HEADER_BEARER + idToken);
         }
         int code = conn.getResponseCode();
         InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
@@ -710,9 +717,9 @@ public final class FirebaseManager {
         // Some JDKs don't support PATCH; use POST + override
         conn.setRequestMethod("POST");
         conn.setRequestProperty("X-HTTP-Method-Override", "PATCH");
-        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        conn.setRequestProperty(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON);
         if (idToken != null) {
-            conn.setRequestProperty("Authorization", "Bearer " + idToken);
+            conn.setRequestProperty(HEADER_AUTHORIZATION, HEADER_BEARER + idToken);
         }
         conn.setDoOutput(true);
         byte[] out = body.toString().getBytes(StandardCharsets.UTF_8);
@@ -731,9 +738,9 @@ public final class FirebaseManager {
     private JSONObject postJsonFirestore(String urlStr, JSONObject body) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        conn.setRequestProperty(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON);
         if (idToken != null) {
-            conn.setRequestProperty("Authorization", "Bearer " + idToken);
+            conn.setRequestProperty(HEADER_AUTHORIZATION, HEADER_BEARER + idToken);
         }
         conn.setDoOutput(true);
         byte[] out = body.toString().getBytes(StandardCharsets.UTF_8);
@@ -751,12 +758,12 @@ public final class FirebaseManager {
 
     /** POST to Firestore documents:commit with Authorization header */
     private JSONObject postJsonCommit(JSONObject body) throws IOException {
-        String urlStr = firestoreApiRoot + "/projects/" + projectId + "/databases/" + databaseId + "/documents:commit?key=" + apiKey;
+        String urlStr = firestoreApiRoot + PATH_PROJECTS + projectId + PATH_DATABASES + databaseId + "/documents:commit" + PARAM_KEY + apiKey;
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        conn.setRequestProperty(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON);
         if (idToken != null) {
-            conn.setRequestProperty("Authorization", "Bearer " + idToken);
+            conn.setRequestProperty(HEADER_AUTHORIZATION, HEADER_BEARER + idToken);
         }
         conn.setDoOutput(true);
         byte[] out = body.toString().getBytes(StandardCharsets.UTF_8);
@@ -775,20 +782,20 @@ public final class FirebaseManager {
 
     /**
      * Get user's permanent upgrade level for a specific type
-     * @param upgradeType "attack", "health", or "speed"
+     * @param upgradeType UPGRADE_ATTACK, UPGRADE_HEALTH, or UPGRADE_SPEED
      * @return upgrade level (0 if not found or not logged in)
      */
     public int getUpgradeLevel(String upgradeType) {
         if (!isLoggedIn()) return 0;
         if (documentsBase() == null) return 0;
         try {
-            String url = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject res = getJson(url);
-            if (res != null && res.has("fields")) {
-                JSONObject fields = res.getJSONObject("fields");
-                String fieldName = "upgrade_" + upgradeType;
+            if (res != null && res.has(FIELD_FIELDS)) {
+                JSONObject fields = res.getJSONObject(FIELD_FIELDS);
+                String fieldName = UPGRADE_PREFIX + upgradeType;
                 if (fields.has(fieldName)) {
-                    return fields.getJSONObject(fieldName).getInt("integerValue");
+                    return fields.getJSONObject(fieldName).getInt(FIELD_INTEGER_VALUE);
                 }
             }
         } catch (Exception e) {
@@ -799,19 +806,19 @@ public final class FirebaseManager {
 
     /**
      * Get all permanent upgrade levels
-     * @return Map with keys "attack", "health", "speed" and their levels
+     * @return Map with keys UPGRADE_ATTACK, UPGRADE_HEALTH, UPGRADE_SPEED and their levels
      */
     public Map<String, Integer> getAllUpgrades() {
         Map<String, Integer> upgrades = new HashMap<>();
-        upgrades.put("attack", getUpgradeLevel("attack"));
-        upgrades.put("health", getUpgradeLevel("health"));
-        upgrades.put("speed", getUpgradeLevel("speed"));
+        upgrades.put(UPGRADE_ATTACK, getUpgradeLevel(UPGRADE_ATTACK));
+        upgrades.put(UPGRADE_HEALTH, getUpgradeLevel(UPGRADE_HEALTH));
+        upgrades.put(UPGRADE_SPEED, getUpgradeLevel(UPGRADE_SPEED));
         return upgrades;
     }
 
     /**
      * Purchase a permanent upgrade level
-     * @param upgradeType "attack", "health", or "speed"
+     * @param upgradeType UPGRADE_ATTACK, UPGRADE_HEALTH, or UPGRADE_SPEED
      * @param cost Points cost for this upgrade
      * @return true if purchase successful, false otherwise
      */
@@ -833,28 +840,28 @@ public final class FirebaseManager {
 
     //         // Deduct points and update upgrade level atomically
     //         int newPoints = currentPoints - cost;
-    //         String fieldName = "upgrade_" + upgradeType;
+    //         String fieldName = UPGRADE_PREFIX + upgradeType;
 
     //         JSONObject fields = new JSONObject()
-    //                 .put("email", new JSONObject().put("stringValue", email))
-    //                 .put("points", new JSONObject().put("integerValue", newPoints))
-    //                 .put(fieldName, new JSONObject().put("integerValue", newLevel));
+    //                 .put(FIELD_EMAIL, new JSONObject().put(FIELD_STRING_VALUE, email))
+    //                 .put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, newPoints))
+    //                 .put(fieldName, new JSONObject().put(FIELD_INTEGER_VALUE, newLevel));
 
     //         // Also preserve existing upgrade fields
-    //         String url = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+    //         String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
     //         JSONObject existing = getJson(url);
-    //         if (existing != null && existing.has("fields")) {
-    //             JSONObject existingFields = existing.getJSONObject("fields");
+    //         if (existing != null && existing.has(FIELD_FIELDS)) {
+    //             JSONObject existingFields = existing.getJSONObject(FIELD_FIELDS);
     //             // Preserve other upgrade fields
-    //             for (String type : new String[]{"attack", "health", "speed"}) {
-    //                 String fn = "upgrade_" + type;
+    //             for (String type : new String[]{UPGRADE_ATTACK, UPGRADE_HEALTH, UPGRADE_SPEED}) {
+    //                 String fn = UPGRADE_PREFIX + type;
     //                 if (!fn.equals(fieldName) && existingFields.has(fn)) {
     //                     fields.put(fn, existingFields.getJSONObject(fn));
     //                 }
     //             }
     //         }
 
-    //         JSONObject body = new JSONObject().put("fields", fields);
+    //         JSONObject body = new JSONObject().put(FIELD_FIELDS, fields);
     //         JSONObject res = patchJson(url, body);
 
     //         if (res != null) {
@@ -878,11 +885,11 @@ public final class FirebaseManager {
             int newLevel = currentLevel + 1;
             int newPoints = currentPoints - cost;
 
-            String url = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
             JSONObject existing = getJson(url);
-            if (existing == null || !existing.has("fields")) return false;
+            if (existing == null || !existing.has(FIELD_FIELDS)) return false;
 
-            JSONObject fields = buildUpgradeFields(upgradeType, newPoints, newLevel, existing.getJSONObject("fields"));
+            JSONObject fields = buildUpgradeFields(upgradeType, newPoints, newLevel, existing.getJSONObject(FIELD_FIELDS));
             String patchUrl = buildUpgradePatchUrl(url, upgradeType);
 
             return executeUpgradePatch(patchUrl, fields, upgradeType, newLevel);
@@ -907,14 +914,14 @@ public final class FirebaseManager {
         JSONObject fields = new JSONObject();
 
         // Add core fields
-        fields.put("maxClearedStage", new JSONObject().put("integerValue", String.valueOf(getMaxClearedStage())));
-        fields.put("highest_score", new JSONObject().put("integerValue", String.valueOf(getHighestScore())));
-        fields.put("email", new JSONObject().put("stringValue", email));
+        fields.put(FIELD_MAX_CLEARED_STAGE, new JSONObject().put(FIELD_INTEGER_VALUE, String.valueOf(getMaxClearedStage())));
+        fields.put(FIELD_HIGHEST_SCORE, new JSONObject().put(FIELD_INTEGER_VALUE, String.valueOf(getHighestScore())));
+        fields.put(FIELD_EMAIL, new JSONObject().put(FIELD_STRING_VALUE, email));
 
         // Add updated fields
-        fields.put("points", new JSONObject().put("integerValue", newPoints));
-        String fieldName = "upgrade_" + upgradeType;
-        fields.put(fieldName, new JSONObject().put("integerValue", newLevel));
+        fields.put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, newPoints));
+        String fieldName = UPGRADE_PREFIX + upgradeType;
+        fields.put(fieldName, new JSONObject().put(FIELD_INTEGER_VALUE, newLevel));
 
         // Preserve other upgrade fields
         preserveOtherUpgrades(fields, existingFields, fieldName);
@@ -923,8 +930,8 @@ public final class FirebaseManager {
     }
 
     private void preserveOtherUpgrades(JSONObject fields, JSONObject existingFields, String excludeFieldName) {
-        for (String type : new String[]{"attack", "health", "speed"}) {
-            String fn = "upgrade_" + type;
+        for (String type : new String[]{UPGRADE_ATTACK, UPGRADE_HEALTH, UPGRADE_SPEED}) {
+            String fn = UPGRADE_PREFIX + type;
             if (!fn.equals(excludeFieldName) && existingFields.has(fn)) {
                 fields.put(fn, existingFields.getJSONObject(fn));
             }
@@ -941,7 +948,7 @@ public final class FirebaseManager {
     }
 
     private boolean executeUpgradePatch(String patchUrl, JSONObject fields, String upgradeType, int newLevel) throws IOException {
-        JSONObject body = new JSONObject().put("fields", fields);
+        JSONObject body = new JSONObject().put(FIELD_FIELDS, fields);
         JSONObject res = patchJson(patchUrl, body);
 
         if (res != null) {
@@ -953,7 +960,7 @@ public final class FirebaseManager {
 
     /**
      * Get the cost for the next level of an upgrade
-     * @param upgradeType "attack", "health", or "speed"
+     * @param upgradeType UPGRADE_ATTACK, UPGRADE_HEALTH, or UPGRADE_SPEED
      * @return cost in points, or -1 if max level reached
      */
     public int getUpgradeCost(String upgradeType) {
@@ -967,13 +974,13 @@ public final class FirebaseManager {
         // Cost scaling: base cost * (level + 1)
         int baseCost;
         switch (upgradeType) {
-            case "attack":
+            case UPGRADE_ATTACK:
                 baseCost = 300;  // Attack: 300, 600, 900, 1200, 1500
                 break;
-            case "health":
+            case UPGRADE_HEALTH:
                 baseCost = 400;  // Health: 400, 800, 1200, 1600, 2000
                 break;
-            case "speed":
+            case UPGRADE_SPEED:
                 baseCost = 350;  // Speed: 350, 700, 1050, 1400, 1750
                 break;
             default:
@@ -1002,8 +1009,8 @@ public final class FirebaseManager {
             JSONObject body = new JSONObject().put("structuredQuery", structuredQuery);
             JSONObject resWrapper = postJsonRunQuery(body);
 
-            if (resWrapper != null && resWrapper.has("documents")) {
-                rankingData = parseTopScoresResponse(resWrapper.getJSONArray("documents"));
+            if (resWrapper != null && resWrapper.has(FIELD_DOCUMENTS)) {
+                rankingData = parseTopScoresResponse(resWrapper.getJSONArray(FIELD_DOCUMENTS));
             }
         } catch (Exception e) {
             System.err.println("Error in getTopScores: " + e.getMessage());
@@ -1016,7 +1023,7 @@ public final class FirebaseManager {
         return new JSONObject()
                 .put("from", new JSONArray().put(new JSONObject().put("collectionId", "users")))
                 .put("orderBy", new JSONArray().put(new JSONObject()
-                        .put("field", new JSONObject().put("fieldPath", "highest_score"))
+                        .put("field", new JSONObject().put("fieldPath", FIELD_HIGHEST_SCORE))
                         .put("direction", "DESCENDING")
                 ))
                 .put("limit", limit);
@@ -1037,7 +1044,7 @@ public final class FirebaseManager {
     }
 
     private Map<String, Object> parseScoreDocument(JSONObject doc) {
-        JSONObject fields = doc.getJSONObject("fields");
+        JSONObject fields = doc.getJSONObject(FIELD_FIELDS);
         int score = extractScoreFromFields(fields);
 
         if (score <= 0) return null; // 최고 점수가 0이 아닌 경우에만 랭킹에 포함
@@ -1052,17 +1059,17 @@ public final class FirebaseManager {
     }
 
     private String extractEmailFromFields(JSONObject fields) {
-        if (fields.has("email")) {
-            return fields.getJSONObject("email").getString("stringValue");
+        if (fields.has(FIELD_EMAIL)) {
+            return fields.getJSONObject(FIELD_EMAIL).getString(FIELD_STRING_VALUE);
         }
         return "N/A";
     }
 
     private int extractScoreFromFields(JSONObject fields) {
-        if (fields.has("highest_score")) {
-            JSONObject scoreObj = fields.getJSONObject("highest_score");
-            if (scoreObj.has("integerValue")) {
-                return scoreObj.getInt("integerValue");
+        if (fields.has(FIELD_HIGHEST_SCORE)) {
+            JSONObject scoreObj = fields.getJSONObject(FIELD_HIGHEST_SCORE);
+            if (scoreObj.has(FIELD_INTEGER_VALUE)) {
+                return scoreObj.getInt(FIELD_INTEGER_VALUE);
             }
         }
         return 0;
@@ -1070,12 +1077,12 @@ public final class FirebaseManager {
 
     /** POST to Firestore documents:runQuery with Authorization header */
     private JSONObject postJsonRunQuery(JSONObject body) throws IOException { // 🚀 새로 추가
-        String urlStr = firestoreApiRoot + "/projects/" + projectId + "/databases/" + databaseId + "/documents:runQuery?key=" + apiKey;
+        String urlStr = firestoreApiRoot + PATH_PROJECTS + projectId + PATH_DATABASES + databaseId + "/documents:runQuery" + PARAM_KEY + apiKey;
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        conn.setRequestProperty(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON);
         if (idToken != null) {
-            conn.setRequestProperty("Authorization", "Bearer " + idToken);
+            conn.setRequestProperty(HEADER_AUTHORIZATION, HEADER_BEARER + idToken);
         }
         conn.setDoOutput(true);
         byte[] out = body.toString().getBytes(StandardCharsets.UTF_8);
@@ -1115,7 +1122,7 @@ public final class FirebaseManager {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod(method); // "PATCH" 설정
-        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty(HEADER_CONTENT_TYPE, "application/json");
         // ... (인증 헤더 설정, 출력 스트림을 통해 jsonPayload 전송 등) ...
         // conn.connect() 및 응답 코드 확인
     }
@@ -1128,17 +1135,17 @@ public final class FirebaseManager {
 
         try {
             // 사용자 문서 URL
-            String url = documentsBase() + "/users/" + localId + "?key=" + apiKey;
+            String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
 
             // 1. [PATCH JSON BODY] 필드 객체 생성
             JSONObject fields = new JSONObject()
-                .put("maxClearedStage", new JSONObject().put("integerValue", stage));
+                .put(FIELD_MAX_CLEARED_STAGE, new JSONObject().put(FIELD_INTEGER_VALUE, stage));
             
             // 2. [UPDATE MASK] updateMask 쿼리 파라미터 추가
             String updateUrl = url + "&updateMask.fieldPaths=maxClearedStage";
             
             // 3. 요청 본문: fields 객체를 포함하는 JSON 객체
-            JSONObject body = new JSONObject().put("fields", fields);
+            JSONObject body = new JSONObject().put(FIELD_FIELDS, fields);
             
             // 4. 기존의 patchJson 메서드를 사용하여 PATCH 요청 전송
             JSONObject res = patchJson(updateUrl, body); // ✅ 이 메서드는 X-HTTP-Method-Override를 사용합니다.
@@ -1167,7 +1174,7 @@ public final class FirebaseManager {
 
         try {
             // 사용자 문서 경로: /users/{localId}
-            String url = documentsBase() + "/users/" + localId;
+            String url = documentsBase() + PATH_USERS + localId;
 
             // 💡 [수정 2] getJson()이 String이 아닌 JSONObject를 직접 반환한다고 가정합니다.
             JSONObject json = getJson(url);
@@ -1179,11 +1186,11 @@ public final class FirebaseManager {
             }
 
             // 응답 JSON 파싱
-            if (json.has("fields")) {
-                JSONObject fields = json.getJSONObject("fields");
-                if (fields.has("maxClearedStage")) {
-                    // "maxClearedStage": {"integerValue": "3"} 형태 파싱
-                    String stageValue = fields.getJSONObject("maxClearedStage").getString("integerValue");
+            if (json.has(FIELD_FIELDS)) {
+                JSONObject fields = json.getJSONObject(FIELD_FIELDS);
+                if (fields.has(FIELD_MAX_CLEARED_STAGE)) {
+                    // FIELD_MAX_CLEARED_STAGE: {FIELD_INTEGER_VALUE: "3"} 형태 파싱
+                    String stageValue = fields.getJSONObject(FIELD_MAX_CLEARED_STAGE).getString(FIELD_INTEGER_VALUE);
                     return Integer.parseInt(stageValue);
                 }
             }
