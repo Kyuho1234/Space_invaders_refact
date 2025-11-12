@@ -27,15 +27,16 @@ public final class FirebaseManager {
     private static final String FIELD_INTEGER_VALUE = "integerValue";
     private static final String FIELD_RETURN_SECURE_TOKEN = "returnSecureToken";
 
+    private static final String PARAM_KEY = "?key=";
+    private static final String PARAM_AND_KEY = "&key=";
+    private static final String PARAM_DOCUMENT_ID = "?documentId=";
+
     private static final String PATH_PROJECTS = "/projects/";
     private static final String PATH_USERS = "/users/";
     private static final String PATH_ITEMS = "/items";
     private static final String PATH_DATABASES = "/databases/";
-    private static final String PATH_USERS_QUERY = PATH_USERS_QUERY;
-    private static final String PATH_ITEMS_QUERY = PATH_ITEMS_QUERY;
-    private static final String PARAM_KEY = "?key=";
-    private static final String PARAM_AND_KEY = "&key=";
-    private static final String PARAM_DOCUMENT_ID = "?documentId=";
+    private static final String PATH_USERS_QUERY = PATH_USERS + PARAM_DOCUMENT_ID;
+    private static final String PATH_ITEMS_QUERY = PATH_ITEMS + PARAM_KEY;
 
     private static final String CONFIG_KEY_API_KEY = "apiKey";
     private static final String CONFIG_KEY_PROJECT_ID = "projectId";
