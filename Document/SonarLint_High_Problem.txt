@@ -1,0 +1,6 @@
+FirebaseManager.java (1 issue)
+(761, 71) Use already-defined constant 'PATH_DATABASES' instead of duplicating its value here. [+1 location] 2 days ago java:S1192
+Game.java (2 issues)
+(1485, 14) Refactor this method to reduce its Cognitive Complexity from 18 to the 15 allowed. [+14 locations] 2 days ago java:S3776
+
+(862, 15) Refactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed. [+7 locations] 2 days ago java:S3776

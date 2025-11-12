@@ -48,9 +48,9 @@ import org.newdawn.spaceinvaders.items.ItemManager;
  */
 public class Game extends Canvas {
 	// String constants
-	private static final String FONT_ARIAL = FONT_ARIAL;
+	private static final String FONT_ARIAL = "ARIAL";
 	private static final String MOVEMENT_PATTERN_NORMAL = "normal";
-	private static final String PRESS_ANY_KEY_MESSAGE = PRESS_ANY_KEY_MESSAGE;
+	private static final String PRESS_ANY_KEY_MESSAGE = "PRESS_ANY_KEY_MESSAGE";
 
 	/** The stragey that allows us to use accelerate page flipping */
 	private transient BufferStrategy strategy;
