@@ -28,6 +28,8 @@ import org.newdawn.spaceinvaders.rendering.ResourceLoader;
 import org.newdawn.spaceinvaders.rendering.ItemPanelRenderer;
 import org.newdawn.spaceinvaders.rendering.HPBarRenderer;
 import org.newdawn.spaceinvaders.rendering.ScreenRenderer;
+import org.newdawn.spaceinvaders.game.GameStateManager;
+import org.newdawn.spaceinvaders.game.EntityManager;
 
 
 /**
@@ -46,9 +48,6 @@ import org.newdawn.spaceinvaders.rendering.ScreenRenderer;
  * @author Kevin Glass
  */
 public class Game extends Canvas {
-	// String constants
-	private static final String MOVEMENT_PATTERN_NORMAL = "normal";
-
 	/** The stragey that allows us to use accelerate page flipping */
 	private transient BufferStrategy strategy;
 	/** True if the game is currently "running", i.e. the game loop is looping */
@@ -83,8 +82,6 @@ public class Game extends Canvas {
 	private long enemyFiringInterval = 1200; // ms
 	/** The number of aliens left on the screen */
 	private int alienCount;
-	/** Current stage/level (1-5) */
-	private int currentStage = 1;
 	/** Total score */
 	private int score = 0;
 	private int finalScore = 0;
@@ -147,6 +144,9 @@ public class Game extends Canvas {
 	private transient HPBarRenderer hpBarRenderer;
 	private transient ItemPanelRenderer itemPanelRenderer;
 	private transient ScreenRenderer screenRenderer;
+	/** Game managers (SRP - Single Responsibility) */
+	private transient GameStateManager stateManager;
+	private transient EntityManager entityManager;
 	/** True if pause-confirm overlay is active (ESC during gameplay) */
 	private boolean pausePromptActive = false;
 	private boolean stageSelectActive = false; // 스테이지 선택 화면 활성화 상태
@@ -177,6 +177,35 @@ public class Game extends Canvas {
 		// Initialize rendering components (SRP - Single Responsibility)
 		hpBarRenderer = new HPBarRenderer();
 		screenRenderer = new ScreenRenderer();
+
+		// Initialize game managers (SRP - Single Responsibility)
+		stateManager = new GameStateManager(firebaseManager);
+		entityManager = new EntityManager(this, alienFactory, new EntityManager.EntityEventListener() {
+			@Override
+			public void onAlienKilled(int score) {
+				notifyAlienKilled(score);
+			}
+
+			@Override
+			public void onBossKilled() {
+				notifyBossKilled();
+			}
+
+			@Override
+			public void onPlayerHit(ShipEntity player, int damage) {
+				notifyPlayerHit(player, damage);
+			}
+
+			@Override
+			public void onAllAliensKilled() {
+				notifyWin();
+			}
+
+			@Override
+			public void updateLogic() {
+				logicRequiredThisLoop = true;
+			}
+		});
 
 		// create a frame to contain our game
 		container = new JFrame("Space Invaders 102");
@@ -250,256 +279,43 @@ public class Game extends Canvas {
 	 * create a new set.
 	 */
 	private void startGame() {
+		// Use GameStateManager for state reset
+		stateManager.resetForNewGame();
+		stateManager.applyPermanentUpgrades();
 		pausePromptActive = false;
 
-		// 게임 시작 시 영구 업그레이드 적용
-		applyPermanentUpgrades();
-
-		if (firebaseManager != null && firebaseManager.isLoggedIn()) {
-			purchasedItems = firebaseManager.getPurchasedItems();
-			if (itemManager == null) itemManager = new ItemManager(firebaseManager);
-			itemManager.setCountsFromPurchased(purchasedItems);
-			syncItemCountsFromManager(); // UI 표시용 배열을 갱신
-		}
-		// refresh purchased items & counts from Firestore at stage start
 		if (firebaseManager != null && firebaseManager.isLoggedIn()) {
 			purchasedItems = firebaseManager.getPurchasedItems();
 			if (itemManager == null) itemManager = new ItemManager(firebaseManager);
 			itemManager.setCountsFromPurchased(purchasedItems);
 			syncItemCountsFromManager();
 		}
-		// Don't reset stage/score here - they're set in notifyDeath() or notifyWin()
-		// This method just initializes a new level
 
-		// clear out any existing entities and intialise a new set
+		// Use EntityManager to initialize entities
 		isTwoPlayerGame = SettingsManager.isTwoPlayerEnabled();
-
-
 		entities.clear();
-		initEntities();
+		entityManager.initEntities(stateManager.getCurrentStage());
+
+		// Sync entities list (for compatibility during migration)
+		entities.addAll(entityManager.getEntities());
+		ship = entityManager.getShip();
+		ship2 = entityManager.getShip2();
+		alienCount = entityManager.getAlienCount();
 
 		// blank out any keyboard settings we might currently have
 		leftPressed= false;
 		rightPressed = false;
 		firePressed = false;
-
-		//2p기능
 		leftPressed2 = false;
 		rightPressed2 = false;
 		firePressed2 = false;
 
+		// Get move speed and firing interval from state manager
+		moveSpeed = stateManager.getMoveSpeed();
+		firingInterval = stateManager.getFiringInterval();
 	}
 
-	/**
-	 * Apply permanent upgrades from Firestore to game stats
-	 */
-	private void applyPermanentUpgrades() {
-		if (firebaseManager == null || !firebaseManager.isLoggedIn()) {
-			// Not logged in - use default values
-			moveSpeed = 300;
-			firingInterval = 500;
-			playerMaxHealth = 3;
-			playerHealth = playerMaxHealth;
-			// =================================================================
-			// === 2P FEATURE: Set default health for P2 as well ===
-			// =================================================================
-			player2MaxHealth = 3;
-			player2Health = player2MaxHealth;
-			return;
-		}
 
-		// Get upgrade levels from Firestore
-		int attackLevel = firebaseManager.getUpgradeLevel("attack");
-		int healthLevel = firebaseManager.getUpgradeLevel("health");
-		int speedLevel = firebaseManager.getUpgradeLevel("speed");
-
-		// Apply attack upgrade (연사속도 증가)
-		// Each level: -15% cooldown (faster shooting)
-		firingInterval = (long)(500 * Math.pow(0.85, attackLevel));
-
-		// Apply health upgrade (최대 HP 증가)
-		// Each level: +1 HP
-		playerMaxHealth = 3 + healthLevel;
-		playerHealth = playerMaxHealth;
-
-		// =================================================================
-		// === 2P FEATURE: Apply health upgrade to P2 if active ===
-		// =================================================================
-		if (SettingsManager.isTwoPlayerEnabled()) {
-			player2MaxHealth = 3 + healthLevel;
-			player2Health = player2MaxHealth;
-		}
-
-
-		// Apply speed upgrade (이동속도 증가)
-		// Each level: +12% movement speed
-		moveSpeed = 300 * Math.pow(1.12, speedLevel);
-
-		System.out.println("[Permanent Upgrades Applied]");
-		System.out.println("  Attack Level " + attackLevel + ": Fire Interval = " + firingInterval + "ms");
-		System.out.println("  Health Level " + healthLevel + ": Max HP = " + playerMaxHealth);
-		System.out.println("  Speed Level " + speedLevel + ": Move Speed = " + moveSpeed);
-	}
-
-	/**
-	 * Initialise the starting state of the entities (ship and aliens). Each
-	 * entitiy will be added to the overall list of entities in the game.
-	 */
-	private void initEntities() {
-		// 1P
-		ship = new ShipEntity(this,"sprites/ship.gif", GameConstants.PLAYER1_START_X, GameConstants.PLAYER1_START_Y);
-		entities.add(ship);
-
-// SettingsManager에서 2P 모드가 활성화되어 있는지 확인합니다.
-		boolean twoPlayerEnabled = SettingsManager.isTwoPlayerEnabled();
-
-		// 2P(옵션)
-		if (twoPlayerEnabled) {
-			// 1P와 약간 떨어뜨려 배치
-			ship2 = new ShipEntity(this,"sprites/ship.gif", GameConstants.PLAYER2_START_X, GameConstants.PLAYER2_START_Y);
-			entities.add(ship2);
-		} else {
-			ship2 = null; // 안전
-		}
-
-		// 적 생성
-		initAliensForStage(currentStage);
-	}
-
-	/**
-	 * Initialize aliens based on the current stage
-	 * @param stage The current stage (1-5)
-	 */
-	private void initAliensForStage(int stage) {
-		alienCount = 0;
-
-		switch(stage) {
-			case 1:
-				// Stage 1: Basic formation - 1 BASIC alien for testing
-				createAlienFormation(1, 1, 350, 100, 50, 30, MOVEMENT_PATTERN_NORMAL);
-				break;
-			case 2:
-				// Stage 2: 1 BASIC + 1 FAST alien for testing
-				createAlienFormation(1, 2, 300, 100, 100, 30, MOVEMENT_PATTERN_NORMAL);
-				break;
-			case 3:
-				// Stage 3: 3 different types for testing
-				createAlienFormation(2, 2, 250, 80, 150, 40, "zigzag");
-				break;
-			case 4:
-				// Stage 4: All 4 types for testing (includes SPECIAL teleport)
-				createAlienFormation(2, 2, 250, 80, 150, 40, "wave");
-				break;
-			case 5:
-				// Stage 5: 2 random aliens + boss for testing
-				createAlienFormation(1, 2, 200, 120, 200, 35, MOVEMENT_PATTERN_NORMAL);
-				// Boss will be added separately
-				createBossAlien();
-				break;
-			default:
-				// Default to Stage 1 formation for any unexpected stage value
-				createAlienFormation(1, 1, 350, 100, 50, 30, MOVEMENT_PATTERN_NORMAL);
-				break;
-		}
-	}
-
-	/**
-	 * Create a formation of aliens
-	 * @param rows Number of rows
-	 * @param cols Number of columns
-	 * @param startX Starting X position
-	 * @param startY Starting Y position
-	 * @param spacingX Horizontal spacing
-	 * @param spacingY Vertical spacing
-	 * @param movementType Movement pattern type (deprecated, now determined by alien type)
-	 */
-	private void createAlienFormation(int rows, int cols, int startX, int startY, int spacingX, int spacingY, String movementType) {
-		for (int row = 0; row < rows; row++) {
-			for (int col = 0; col < cols; col++) {
-				// Use AlienFactory to create aliens (Factory Pattern - OCP compliance)
-				AlienEntity alien = alienFactory.createAlien(
-					currentStage,
-					row,
-					col,
-					startX + (col * spacingX),
-					startY + (row * spacingY)
-				);
-				entities.add(alien);
-				alienCount++;
-			}
-		}
-	}
-
-	/**
-	 * Determine alien type based on stage, row, and column
-	 * @param stage Current stage
-	 * @param row Row position
-	 * @param col Column position
-	 * @return AlienType to create
-	 */
-	private AlienEntity.AlienType determineAlienType(int stage, int row, int col) {
-		switch (stage) {
-			case 1:
-				return getStage1AlienType();
-			case 2:
-				return getStage2AlienType(row);
-			case 3:
-				return getStage3AlienType(row);
-			case 4:
-				return getStage4AlienType(row, col);
-			case 5:
-				return getStage5AlienType();
-			default:
-				return AlienEntity.AlienType.BASIC;
-		}
-	}
-
-	private AlienEntity.AlienType getStage1AlienType() {
-		return AlienEntity.AlienType.BASIC;
-	}
-
-	private AlienEntity.AlienType getStage2AlienType(int row) {
-		if (row == 0) {
-			return AlienEntity.AlienType.FAST; // Fast aliens in front row
-		}
-		return AlienEntity.AlienType.BASIC;
-	}
-
-	private AlienEntity.AlienType getStage3AlienType(int row) {
-		if (row == 0) {
-			return AlienEntity.AlienType.FAST;
-		} else if (row == 1) {
-			return AlienEntity.AlienType.HEAVY;
-		}
-		return AlienEntity.AlienType.BASIC;
-	}
-
-	private AlienEntity.AlienType getStage4AlienType(int row, int col) {
-		if (row == 0) {
-			return (col % 2 == 0) ? AlienEntity.AlienType.FAST : AlienEntity.AlienType.SPECIAL;
-		} else if (row == 1) {
-			return AlienEntity.AlienType.HEAVY;
-		}
-		return AlienEntity.AlienType.BASIC;
-	}
-
-	private AlienEntity.AlienType getStage5AlienType() {
-		double random = Math.random();
-		if (random < 0.3) return AlienEntity.AlienType.FAST;
-		else if (random < 0.6) return AlienEntity.AlienType.HEAVY;
-		else if (random < 0.8) return AlienEntity.AlienType.SPECIAL;
-		return AlienEntity.AlienType.BASIC;
-	}
-
-	/**
-	 * Create boss alien for stage 5
-	 */
-	private void createBossAlien() {
-		// Use AlienFactory to create boss (Factory Pattern - OCP compliance)
-		AlienEntity boss = alienFactory.createBoss(350, 100, currentStage);
-		entities.add(boss);
-		alienCount++;
-	}
 
 	/**
 	 * Notification from a game entity that the logic of the game
@@ -564,12 +380,12 @@ public class Game extends Canvas {
 
 		// 💡 [핵심 수정] maxClearedStage 변수는 건드리지 않고, Firebase에 저장만 시도합니다.
 		// 현재 플레이 중인 스테이지(currentStage)가 maxClearedStage보다 높을 경우에만 저장 시도
-		if (currentStage > maxClearedStage) {
+		if (stateManager.getCurrentStage() > maxClearedStage) {
 			if (firebaseManager != null && firebaseManager.isLoggedIn()) {
 				// ✅ 성공적으로 깬 마지막 스테이지 (현재 진행 중인 스테이지의 직전)를 저장
 				//    Stage 3에서 죽었다면 (3-1=2) Stage 2를 저장
-				firebaseManager.saveMaxClearedStage(currentStage - 1);
-				System.out.println("DEATH: Saved *previous* stage " + (currentStage - 1) + " as max.");
+				firebaseManager.saveMaxClearedStage(stateManager.getCurrentStage() - 1);
+				System.out.println("DEATH: Saved *previous* stage " + (stateManager.getCurrentStage() - 1) + " as max.");
 			}
 		}
 
@@ -605,7 +421,7 @@ public class Game extends Canvas {
 	}
 
 	private boolean isFinalStageCompleted() {
-		return currentStage >= 5;
+		return stateManager.getCurrentStage() >= 5;
 	}
 
 	private void handleFinalStageCompletion() {
@@ -613,7 +429,7 @@ public class Game extends Canvas {
 		message = "Congratulations! All stages completed! Final Score: " + finalScore;
 		waitingForKeyPress = true;
 		score = 0;
-		currentStage = 1;
+		stateManager.setCurrentStage(1);
 	}
 
 	private void handleIntermediateStageCompletion() {
@@ -624,8 +440,8 @@ public class Game extends Canvas {
 	}
 
 	private void updateMaxClearedStage() {
-		if (currentStage > maxClearedStage) {
-			maxClearedStage = currentStage;
+		if (stateManager.getCurrentStage() > maxClearedStage) {
+			maxClearedStage = stateManager.getCurrentStage();
 			if (firebaseManager != null && firebaseManager.isLoggedIn()) {
 				firebaseManager.saveMaxClearedStage(maxClearedStage);
 			}
@@ -633,7 +449,7 @@ public class Game extends Canvas {
 	}
 
 	private void awardStageBonus() {
-		int stageBonus = currentStage * 100;
+		int stageBonus = stateManager.getCurrentStage() * 100;
 		if (firebaseManager != null && firebaseManager.isLoggedIn()) {
 			firebaseManager.addPoints(stageBonus);
 		}
@@ -721,7 +537,7 @@ public class Game extends Canvas {
 	public void notifyAlienKilled(int alienScore) {
 		// Add score based on alien type and current stage multiplier
 		double mult = (itemManager != null) ? itemManager.currentScoreMultiplier() : 1.0;
-		score += (int)Math.round(alienScore * currentStage * mult);
+		score += (int)Math.round(alienScore * stateManager.getCurrentStage() * mult);
 
 		// reduce the alien count, if there are none left, the player has won!
 		alienCount--;
@@ -737,7 +553,7 @@ public class Game extends Canvas {
 
 			if (entity instanceof AlienEntity) {
 				// speed up by 2% (more aggressive on higher stages)
-				double speedIncrease = 1.02 + (currentStage * 0.005);
+				double speedIncrease = 1.02 + (stateManager.getCurrentStage() * 0.005);
 				entity.setHorizontalMovement(entity.getHorizontalMovement() * speedIncrease);
 			}
 		}
@@ -749,7 +565,7 @@ public class Game extends Canvas {
 	public void notifyBossKilled() {
 		// Boss is worth 10x regular alien points
 		double mult = (itemManager != null) ? itemManager.currentScoreMultiplier() : 1.0;
-		score += (int)Math.round(alienKillPoints * currentStage * 10 * mult);
+		score += (int)Math.round(alienKillPoints * stateManager.getCurrentStage() * 10 * mult);
 		alienCount--;
 
 		if (alienCount == 0) {
@@ -1016,7 +832,7 @@ public class Game extends Canvas {
 
 		// Draw HUD
 		if (screenRenderer != null) {
-			screenRenderer.drawHUD(g, currentStage, score);
+			screenRenderer.drawHUD(g, stateManager.getCurrentStage(), score);
 		}
 
 		// Draw overlays using ScreenRenderer
@@ -1123,7 +939,7 @@ public class Game extends Canvas {
 	}
 
 	private long calculateEnemyFiringInterval() {
-		double stageDifficultyMultiplier = 1.0 - (currentStage * 0.1);
+		double stageDifficultyMultiplier = 1.0 - (stateManager.getCurrentStage() * 0.1);
 		double alienCountMultiplier = Math.max(0.5, alienCount / 10.0);
 		long adjustedInterval = (long) (enemyFiringInterval * stageDifficultyMultiplier * alienCountMultiplier);
 		return Math.max(400, adjustedInterval);
@@ -1283,7 +1099,7 @@ public class Game extends Canvas {
 				int maxSelectableStage = Math.min(5, maxClearedStage + 1);
 				selectedStage = Math.min(maxSelectableStage, selectedStage + 1);
 			} else if (keyCode == KeyEvent.VK_ENTER) {
-				currentStage = selectedStage;
+				stateManager.setCurrentStage(selectedStage);
 				stageSelectActive = false;
 				enemyLastFire = SystemTimer.getTime();
 				startGame();
