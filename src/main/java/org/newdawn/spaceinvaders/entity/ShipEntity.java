@@ -1,6 +1,7 @@
 package org.newdawn.spaceinvaders.entity;
 
 import org.newdawn.spaceinvaders.Game;
+import org.newdawn.spaceinvaders.GameConstants;
 
 /**
  * The entity that represents the players ship
@@ -34,12 +35,12 @@ public class ShipEntity extends Entity {
 	public void move(long delta) {
 		// if we're moving left and have reached the left hand side
 		// of the screen, don't move
-		if ((dx < 0) && (x < 10)) {
+		if ((dx < 0) && (x < GameConstants.PLAYER_LEFT_BOUND)) {
 			return;
 		}
 		// if we're moving right and have reached the right hand side
 		// of the screen, don't move
-		if ((dx > 0) && (x > 750)) {
+		if ((dx > 0) && (x > GameConstants.PLAYER_RIGHT_BOUND)) {
 			return;
 		}
 		

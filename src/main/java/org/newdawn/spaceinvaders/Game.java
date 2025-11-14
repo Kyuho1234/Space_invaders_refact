@@ -4,7 +4,6 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.FontMetrics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -12,10 +11,6 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.awt.Image;
-import javax.swing.ImageIcon;
-import java.net.URL;
-import java.awt.Toolkit;
-import java.awt.Font;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -29,6 +24,10 @@ import org.newdawn.spaceinvaders.settings.SettingsDialog;
 import org.newdawn.spaceinvaders.settings.SettingsManager;
 import org.newdawn.spaceinvaders.firebase.FirebaseManager;
 import org.newdawn.spaceinvaders.items.ItemManager;
+import org.newdawn.spaceinvaders.rendering.ResourceLoader;
+import org.newdawn.spaceinvaders.rendering.ItemPanelRenderer;
+import org.newdawn.spaceinvaders.rendering.HPBarRenderer;
+import org.newdawn.spaceinvaders.rendering.ScreenRenderer;
 
 
 /**
@@ -48,9 +47,7 @@ import org.newdawn.spaceinvaders.items.ItemManager;
  */
 public class Game extends Canvas {
 	// String constants
-	private static final String FONT_ARIAL = "ARIAL";
 	private static final String MOVEMENT_PATTERN_NORMAL = "normal";
-	private static final String PRESS_ANY_KEY_MESSAGE = "PRESS_ANY_KEY_MESSAGE";
 
 	/** The stragey that allows us to use accelerate page flipping */
 	private transient BufferStrategy strategy;
@@ -74,12 +71,12 @@ public class Game extends Canvas {
 	/** The interval between our players shot (ms) */
 	private long firingInterval = 500;
 	/** Player health */
-	private int playerMaxHealth = 3;
+	private int playerMaxHealth = GameConstants.DEFAULT_PLAYER_MAX_HEALTH;
 	private int playerHealth = playerMaxHealth;
 	// =================================================================
 	// === 2P FEATURE: Added separate health for the second player ===
 	// =================================================================
-	private int player2MaxHealth = 3;
+	private int player2MaxHealth = GameConstants.DEFAULT_PLAYER_MAX_HEALTH;
 	private int player2Health = player2MaxHealth;
 	/** Enemy firing control */
 	private long enemyLastFire = 0;
@@ -146,6 +143,10 @@ public class Game extends Canvas {
 	private transient ItemManager itemManager;
 	/** Alien factory for creating aliens (Factory Pattern - OCP, DIP) */
 	private transient AlienFactory alienFactory;
+	/** Rendering components (SRP - Single Responsibility) */
+	private transient HPBarRenderer hpBarRenderer;
+	private transient ItemPanelRenderer itemPanelRenderer;
+	private transient ScreenRenderer screenRenderer;
 	/** True if pause-confirm overlay is active (ESC during gameplay) */
 	private boolean pausePromptActive = false;
 	private boolean stageSelectActive = false; // 스테이지 선택 화면 활성화 상태
@@ -173,16 +174,20 @@ public class Game extends Canvas {
 		// Initialize AlienFactory (Factory Pattern)
 		alienFactory = new AlienFactory(this);
 
+		// Initialize rendering components (SRP - Single Responsibility)
+		hpBarRenderer = new HPBarRenderer();
+		screenRenderer = new ScreenRenderer();
+
 		// create a frame to contain our game
 		container = new JFrame("Space Invaders 102");
 
 		// get hold the content of the frame and set up the resolution of the game
 		JPanel panel = (JPanel) container.getContentPane();
-		panel.setPreferredSize(new Dimension(1200,900));
+		panel.setPreferredSize(new Dimension(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT));
 		panel.setLayout(null);
 
 		// setup our canvas size and put it into the content of the frame
-		setBounds(0,0,1200,900);
+		setBounds(0, 0, GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
 		panel.add(this);
 
 		// Tell AWT not to bother repainting our canvas since we're
@@ -214,8 +219,11 @@ public class Game extends Canvas {
 			}
 		});
 
-		// load item icons from resources
-		loadItemUIIcons();
+		// load item icons from resources using ResourceLoader
+		itemUIIcons = ResourceLoader.loadItemUIIcons(itemUIList);
+
+		// Initialize ItemPanelRenderer after icons are loaded
+		updateItemPanelRenderer();
 
 
 		// create the buffering strategy which will allow AWT
@@ -339,7 +347,7 @@ public class Game extends Canvas {
 	 */
 	private void initEntities() {
 		// 1P
-		ship = new ShipEntity(this,"sprites/ship.gif",370,550);
+		ship = new ShipEntity(this,"sprites/ship.gif", GameConstants.PLAYER1_START_X, GameConstants.PLAYER1_START_Y);
 		entities.add(ship);
 
 // SettingsManager에서 2P 모드가 활성화되어 있는지 확인합니다.
@@ -348,7 +356,7 @@ public class Game extends Canvas {
 		// 2P(옵션)
 		if (twoPlayerEnabled) {
 			// 1P와 약간 떨어뜨려 배치
-			ship2 = new ShipEntity(this,"sprites/ship.gif",370 + 80, 550);
+			ship2 = new ShipEntity(this,"sprites/ship.gif", GameConstants.PLAYER2_START_X, GameConstants.PLAYER2_START_Y);
 			entities.add(ship2);
 		} else {
 			ship2 = null; // 안전
@@ -858,99 +866,6 @@ public class Game extends Canvas {
 		container.dispose();
 	}
 
-	/** Try multiple classpath variants to load an image resource; logs if not found */
-	private Image loadImageResource(String... candidates) {
-		for (String candidate : candidates) {
-			Image image = tryLoadImageCandidate(candidate);
-			if (image != null) {
-				return image;
-			}
-		}
-		System.out.println("[WARN] Image resource not found: " + java.util.Arrays.toString(candidates));
-		return null;
-	}
-
-	/**
-	 * Try to load image from a single candidate path
-	 */
-	private Image tryLoadImageCandidate(String candidate) {
-		if (candidate == null || candidate.isEmpty()) {
-			return null;
-		}
-
-		String[] probes = new String[] { candidate, "/" + candidate };
-		for (String probe : probes) {
-			Image image = tryLoadImageFromProbe(probe);
-			if (image != null) {
-				return image;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Try to load image from a specific probe path
-	 */
-	private Image tryLoadImageFromProbe(String probe) {
-		URL url = findResourceURL(probe);
-		if (url != null) {
-			return new ImageIcon(url).getImage();
-		}
-		return null;
-	}
-
-	/**
-	 * Find resource URL using class loader and context class loader
-	 */
-	private URL findResourceURL(String path) {
-		URL url = Game.class.getResource(path);
-		if (url == null) {
-			String adjustedPath = path.startsWith("/") ? path.substring(1) : path;
-			url = Thread.currentThread().getContextClassLoader().getResource(adjustedPath);
-		}
-		return url;
-	}
-
-	/** Load item icons from resources matching itemUIList order */
-	private void loadItemUIIcons() {
-		itemUIIcons.clear();
-		for (String name : itemUIList) {
-			String baseFilename = resolveItemIconFilename(name);
-			Image img = loadItemIconImage(baseFilename);
-			itemUIIcons.add(img);
-		}
-	}
-
-	private String resolveItemIconFilename(String name) {
-		String lower = name == null ? "" : name.toLowerCase();
-		if (isImageFilename(lower)) {
-			return name;
-		}
-		return mapNameToIconFilename(lower);
-	}
-
-	private boolean isImageFilename(String lower) {
-		return lower.endsWith(".png") || lower.endsWith(".gif") ||
-		       lower.endsWith(".jpg") || lower.endsWith(".jpeg");
-	}
-
-	private String mapNameToIconFilename(String lower) {
-		switch (lower) {
-			case "ammo":          return "item_ammo_boost.png";
-			case "score":         return "item_double_score.png";
-			case "invincibility": return "item_invincibility.png";
-			case "life":          return "item_plusLife.png";
-			default:              return "item_unknown.png";
-		}
-	}
-
-	private Image loadItemIconImage(String base) {
-		return loadImageResource(
-				"sprites/" + base,
-				"org/newdawn/spaceinvaders/sprites/" + base,
-				"resources/sprites/" + base
-		);
-	}
 
 	/** Map a purchased itemId (from Firestore) to the UI slot index */
 	private int matchItemIndexForId(String itemId) {
@@ -982,269 +897,7 @@ public class Game extends Canvas {
 		}
 	}
 
-	/** Draw a vertical items UI along the far-left edge */
-	private void drawLeftItemsPanel(Graphics2D g2) {
-		int rows = (itemUIList != null) ? itemUIList.size() : 0;
-		if (rows <= 0) return;
 
-		ItemPanelLayout layout = calculateItemPanelLayout(rows);
-		drawItemPanelBackground(g2, layout);
-		drawItemSlots(g2, layout);
-	}
-
-	/**
-	 * Calculate layout metrics for item panel
-	 */
-	private ItemPanelLayout calculateItemPanelLayout(int rows) {
-		int canvasW = this.getWidth();
-		int canvasH = this.getHeight();
-		int pad = 8, gap = 6, startY = 70, innerPad = 6;
-
-		int[] drawWArr = new int[rows];
-		int[] drawHArr = new int[rows];
-		int[] slotWArr = new int[rows];
-		int[] slotHArr = new int[rows];
-
-		int maxPanelW = 0;
-		int y = startY;
-
-		for (int i = 0; i < rows; i++) {
-			Image icon = (i < itemUIIcons.size()) ? itemUIIcons.get(i) : null;
-			int[] sizes = calculateIconSize(icon, innerPad);
-
-			drawWArr[i] = sizes[0];
-			drawHArr[i] = sizes[1];
-			slotWArr[i] = sizes[2];
-			slotHArr[i] = sizes[3];
-
-			maxPanelW = Math.max(maxPanelW, sizes[2]);
-			y += sizes[3] + gap;
-		}
-
-		int totalPanelH = y - startY - gap + pad;
-		if (startY + totalPanelH > canvasH - pad) {
-			totalPanelH = Math.max(0, (canvasH - pad) - startY);
-		}
-
-		return new ItemPanelLayout(pad, gap, startY, innerPad, maxPanelW, totalPanelH,
-		                           drawWArr, drawHArr, slotWArr, slotHArr, canvasH);
-	}
-
-	/**
-	 * Calculate icon and slot sizes
-	 * @return [drawW, drawH, slotW, slotH]
-	 */
-	private int[] calculateIconSize(Image icon, int innerPad) {
-		int baseMaxW = 48, baseMaxH = 48;
-		int imgW = (icon != null) ? icon.getWidth(null) : baseMaxW;
-		int imgH = (icon != null) ? icon.getHeight(null) : baseMaxH;
-		if (imgW <= 0 || imgH <= 0) { imgW = baseMaxW; imgH = baseMaxH; }
-
-		double fitScale = Math.min((double) baseMaxW / imgW, (double) baseMaxH / imgH);
-		int fitW = (int) Math.max(1, Math.round(imgW * fitScale));
-		int fitH = (int) Math.max(1, Math.round(imgH * fitScale));
-		int drawW = (int) Math.max(1, Math.round(fitW * (2.0 / 3.0)));
-		int drawH = (int) Math.max(1, Math.round(fitH * (2.0 / 3.0)));
-
-		int slotW = Math.max(drawW + innerPad * 2, 28);
-		int slotH = Math.max(drawH + innerPad * 2, 28);
-
-		return new int[]{drawW, drawH, slotW, slotH};
-	}
-
-	/**
-	 * Draw panel background
-	 */
-	private void drawItemPanelBackground(Graphics2D g2, ItemPanelLayout layout) {
-		g2.setColor(new Color(20, 20, 20, 150));
-		g2.fillRect(layout.pad - 2, layout.startY - 2, layout.maxPanelW + 4, layout.totalPanelH + 4);
-	}
-
-	/**
-	 * Draw all item slots
-	 */
-	private void drawItemSlots(Graphics2D g2, ItemPanelLayout layout) {
-		int rowY = layout.startY;
-		int rows = layout.slotWArr.length;
-
-		for (int i = 0; i < rows; i++) {
-			if (rowY + layout.slotHArr[i] > layout.canvasH - layout.pad) break;
-
-			drawSingleItemSlot(g2, layout, i, rowY);
-			rowY += layout.slotHArr[i] + layout.gap;
-		}
-	}
-
-	/**
-	 * Draw a single item slot
-	 */
-	private void drawSingleItemSlot(Graphics2D g2, ItemPanelLayout layout, int index, int rowY) {
-		int slotW = layout.slotWArr[index];
-		int slotH = layout.slotHArr[index];
-		int drawW = layout.drawWArr[index];
-		int drawH = layout.drawHArr[index];
-
-		// Slot background
-		g2.setColor(new Color(45, 45, 45));
-		g2.fillRect(layout.pad, rowY, slotW, slotH);
-		g2.setColor(Color.WHITE);
-		g2.drawRect(layout.pad, rowY, slotW, slotH);
-
-		// Draw icon or placeholder
-		Image icon = (index < itemUIIcons.size()) ? itemUIIcons.get(index) : null;
-		int dx = layout.pad + (slotW - drawW) / 2;
-		int dy = rowY + (slotH - drawH) / 2;
-
-		if (icon != null) {
-			g2.drawImage(icon, dx, dy, drawW, drawH, null);
-		} else {
-			drawIconPlaceholder(g2, layout, slotW, slotH, rowY);
-		}
-
-		// Draw count badge
-		drawItemCountBadge(g2, index, dx, dy, drawW, drawH);
-	}
-
-	/**
-	 * Draw placeholder when icon is missing
-	 */
-	private void drawIconPlaceholder(Graphics2D g2, ItemPanelLayout layout, int slotW, int slotH, int rowY) {
-		g2.setColor(new Color(80, 80, 80));
-		g2.fillRect(layout.pad + layout.innerPad, rowY + layout.innerPad,
-		            slotW - layout.innerPad * 2, slotH - layout.innerPad * 2);
-		g2.setColor(Color.WHITE);
-		g2.drawString("?", layout.pad + slotW / 2 - 3, rowY + slotH / 2 + 4);
-	}
-
-	/**
-	 * Draw item count badge
-	 */
-	private void drawItemCountBadge(Graphics2D g2, int index, int dx, int dy, int drawW, int drawH) {
-		int count = (itemUICounts != null && index < itemUICounts.length) ? itemUICounts[index] : 0;
-		if (firebaseManager == null || !firebaseManager.isLoggedIn()) {
-			count = 0;
-		}
-
-		String label = "x" + count;
-		FontMetrics fm = g2.getFontMetrics();
-		int bw = fm.stringWidth(label) + 10;
-		int bh = fm.getAscent() + fm.getDescent();
-		int bx = dx + drawW - bw - 2;
-		int by = dy + drawH - bh - 2;
-
-		g2.setColor(new Color(0, 0, 0, 190));
-		g2.fillRoundRect(bx, by, bw, bh, 8, 8);
-		g2.setColor(Color.WHITE);
-		g2.drawString(label, bx + 5, by + fm.getAscent());
-	}
-
-	/**
-	 * Layout data for item panel
-	 */
-	private static class ItemPanelLayout {
-		final int pad, gap, startY, innerPad, maxPanelW, totalPanelH, canvasH;
-		final int[] drawWArr, drawHArr, slotWArr, slotHArr;
-
-		ItemPanelLayout(int pad, int gap, int startY, int innerPad, int maxPanelW, int totalPanelH,
-		                int[] drawWArr, int[] drawHArr, int[] slotWArr, int[] slotHArr, int canvasH) {
-			this.pad = pad;
-			this.gap = gap;
-			this.startY = startY;
-			this.innerPad = innerPad;
-			this.maxPanelW = maxPanelW;
-			this.totalPanelH = totalPanelH;
-			this.drawWArr = drawWArr;
-			this.drawHArr = drawHArr;
-			this.slotWArr = slotWArr;
-			this.slotHArr = slotHArr;
-			this.canvasH = canvasH;
-		}
-	}
-
-	// =================================================================================================
-	// === 2P FEATURE: REPLACED drawPlayerHPBar with drawPlayerHPBars and a helper method ===
-	// This new function checks if 2P mode is active. If so, it draws two separate, labeled HP bars.
-	// Otherwise, it draws the original single, centered HP bar.
-	// =================================================================================================
-	/**
-	 * Draws HP bars for all active players.
-	 */
-	private void drawPlayerHPBars(Graphics2D g2) {
-		boolean twoPlayer = SettingsManager.isTwoPlayerEnabled() && ship2 != null;
-
-		if (twoPlayer) {
-			// Draw P1's HP Bar on the bottom-left
-			drawSingleHPBar(g2, "P1", playerHealth, playerMaxHealth, "left");
-			// Draw P2's HP Bar on the bottom-right
-			drawSingleHPBar(g2, "P2", player2Health, player2MaxHealth, "right");
-		} else {
-			// Default 1P behavior: a single bar in the center
-			drawSingleHPBar(g2, null, playerHealth, playerMaxHealth, "center");
-		}
-	}
-
-	/**
-	 * Helper method to draw a single segmented HP bar.
-	 * @param g2 The graphics context
-	 * @param label The label for the bar (e.g., "P1") or null for none
-	 * @param currentHP The current health points
-	 * @param maxHP The maximum health points
-	 * @param position Where to draw the bar ("left", "right", or "center")
-	 */
-	private void drawSingleHPBar(Graphics2D g2, String label, int currentHP, int maxHP, String position) {
-		int canvasW = this.getWidth();
-		int canvasH = this.getHeight();
-
-		int segments = Math.max(1, maxHP);
-		int segWidth = 30;   // Width of each HP segment
-		int segHeight = 8;   // Height of each HP segment
-		int gap = 6;         // Gap between segments
-
-		int totalW = segments * segWidth + (segments - 1) * gap;
-		int y0 = canvasH - 28; // Position from the bottom edge
-		int x0;
-
-		// Determine horizontal position based on the 'position' parameter
-		switch (position) {
-			case "left":
-				x0 = 40; // Margin from the left edge
-				break;
-			case "right":
-				x0 = canvasW - totalW - 40; // Margin from the right edge
-				break;
-			default: // "center"
-				x0 = (canvasW - totalW) / 2;
-				break;
-		}
-
-		// Draw the player label (e.g., "P1") above the bar if provided
-		if (label != null) {
-			g2.setColor(Color.WHITE);
-			g2.setFont(new Font(FONT_ARIAL, Font.BOLD, 14));
-			FontMetrics fm = g2.getFontMetrics();
-			g2.drawString(label, x0, y0 - fm.getHeight() / 2);
-		}
-
-		// Draw each segment of the HP bar
-		for (int i = 0; i < segments; i++) {
-			int x = x0 + i * (segWidth + gap);
-			int y = y0;
-
-			g2.setColor(new Color(20, 20, 20, 180));
-			g2.fillRect(x - 2, y - 2, segWidth + 4, segHeight + 4);
-
-			g2.setColor(Color.DARK_GRAY); // Background for an empty segment
-			g2.fillRect(x, y, segWidth, segHeight);
-
-			if (i < currentHP) {
-				g2.setColor(Color.GREEN); // Fill for a full health segment
-				g2.fillRect(x, y, segWidth, segHeight);
-			}
-
-			g2.setColor(Color.WHITE); // Border for the segment
-			g2.drawRect(x, y, segWidth, segHeight);
-		}
-	}
 
 
 	/**
@@ -1362,156 +1015,36 @@ public class Game extends Canvas {
 		}
 
 		// Draw HUD
-		drawHUD(g);
-
-		// Draw overlays
-		if (stageSelectActive) {
-			drawStageSelectScreen(g);
-		} else if (pausePromptActive) {
-			drawPausePrompt(g);
-		} else if (waitingForKeyPress) {
-			drawGameOverScreen(g);
+		if (screenRenderer != null) {
+			screenRenderer.drawHUD(g, currentStage, score);
 		}
 
-		// Draw UI panels
-		drawLeftItemsPanel(g);
-		drawPlayerHPBars(g);
+		// Draw overlays using ScreenRenderer
+		if (screenRenderer != null) {
+			if (stageSelectActive) {
+				screenRenderer.drawStageSelectScreen(g, selectedStage, maxClearedStage);
+			} else if (pausePromptActive) {
+				screenRenderer.drawPausePrompt(g, score);
+			} else if (waitingForKeyPress) {
+				screenRenderer.drawGameOverScreen(g, message, newHighScoreAchieved, finalScore);
+			}
+		}
+
+		// Draw UI panels using renderers
+		if (itemPanelRenderer != null) {
+			itemPanelRenderer.drawLeftItemsPanel(g, getWidth(), getHeight());
+		}
+		if (hpBarRenderer != null) {
+			boolean twoPlayer = SettingsManager.isTwoPlayerEnabled() && ship2 != null;
+			hpBarRenderer.drawPlayerHPBars(g, getWidth(), getHeight(), twoPlayer,
+				playerHealth, playerMaxHealth, player2Health, player2MaxHealth);
+		}
 
 		// Flip buffer
 		g.dispose();
 		strategy.show();
 	}
 
-	/**
-	 * Draw HUD (score, stage)
-	 */
-	private void drawHUD(Graphics2D g) {
-		g.setColor(Color.white);
-		g.drawString("Stage: " + currentStage, 10, 30);
-		g.drawString("Score: " + score, 10, 50);
-	}
-
-	/**
-	 * Draw stage selection screen
-	 */
-	private void drawStageSelectScreen(Graphics2D g) {
-		// 1. 배경 어둡게 처리
-		g.setColor(new Color(0, 0, 0, 200));
-		g.fillRect(0, 0, 1200, 900);
-
-		// 2. 제목 그리기
-		String title = "SELECT NEXT STAGE";
-		g.setColor(Color.WHITE);
-		g.setFont(new Font(FONT_ARIAL, Font.BOLD, 36));
-		FontMetrics fmTitle = g.getFontMetrics();
-		g.drawString(title, (1200 - fmTitle.stringWidth(title)) / 2, 100);
-
-		// 3. 스테이지 버튼 그리기 (1단계 ~ 5단계)
-		int btnSize = 60;
-		int gap = 20;
-		int totalStages = 5;
-		int totalW = totalStages * btnSize + (totalStages - 1) * gap;
-		int startX = (1200 - totalW) / 2;
-		int startY = 200;
-
-		for (int stage = 1; stage <= totalStages; stage++) {
-			int x = startX + (stage - 1) * (btnSize + gap);
-
-			// 선택된 스테이지에 따라 색상 변경
-			if (stage == selectedStage) {
-				// 1. 선택된 스테이지: 노란색
-				g.setColor(Color.YELLOW);
-			} else if (stage <= maxClearedStage || stage == maxClearedStage + 1) {
-				// 2. 클리어했거나, 현재 선택 가능한 스테이지 (하늘색 -> 초록색으로 통일)
-				//    stage <= currentStage: 이미 클리어한 스테이지
-				//    stage == currentStage + 1: 현재 클리어 가능한 다음 스테이지
-				g.setColor(Color.GREEN);
-			} else {
-				// 3. 잠긴 스테이지: 회색
-				g.setColor(Color.LIGHT_GRAY);
-			}
-
-			// 버튼 사각형
-			g.fillRect(x, startY, btnSize, btnSize);
-			g.setColor(Color.BLACK);
-			g.drawRect(x, startY, btnSize, btnSize);
-
-			// 버튼 텍스트 (스테이지 번호)
-			String stageNum = String.valueOf(stage);
-			g.setColor(Color.BLACK);
-			g.setFont(new Font(FONT_ARIAL, Font.BOLD, 24));
-			FontMetrics fmBtn = g.getFontMetrics();
-			g.drawString(stageNum, x + (btnSize - fmBtn.stringWidth(stageNum)) / 2, startY + fmBtn.getAscent() + 10);
-
-			// "Hard" 또는 잠금 상태 표시 (선택 사항)
-			// 💡 [필수 수정] 잠금 조건도 maxClearedStage 기준으로 변경
-			if (stage > maxClearedStage + 1) {
-				g.setColor(new Color(0, 0, 0, 150));
-				g.fillRect(x, startY, btnSize, btnSize);
-				g.setColor(Color.RED);
-				g.drawString("LOCK", x + 5, startY + 40);
-			}
-
-		}
-
-		// 안내 메시지
-		String info = "Use Left/Right Arrows to select, Enter to start.";
-		g.setColor(Color.WHITE);
-		g.setFont(new Font(FONT_ARIAL, Font.PLAIN, 18));
-		FontMetrics fmInfo = g.getFontMetrics();
-		g.drawString(info, (1200 - fmInfo.stringWidth(info)) / 2, 500);
-
-		// 폰트와 색상 복구 (안전성)
-		g.setColor(Color.white);
-		g.setFont(new Font(FONT_ARIAL, Font.PLAIN, 12));
-	}
-
-	/**
-	 * Draw pause prompt overlay
-	 */
-	private void drawPausePrompt(Graphics2D g) {
-		// dim background
-		g.setColor(new Color(0, 0, 0, 160));
-		g.fillRect(0, 0, 1200, 900);
-		g.setColor(Color.white);
-		String pts = String.format("%03d", Math.max(0, score));
-		String l1 = "여기서 멈춘다면 " + pts + " 포인트를 얻습니다.";
-		String l2 = "메인메뉴로 나가려면 ESC, 계속 플레이하려면 SPACE를 누르십시오.";
-		FontMetrics fm = g.getFontMetrics();
-		g.drawString(l1, (1200 - fm.stringWidth(l1)) / 2, 260);
-		g.drawString(l2, (1200 - fm.stringWidth(l2)) / 2, 300);
-	}
-
-	/**
-	 * Draw game over screen
-	 */
-	private void drawGameOverScreen(Graphics2D g) {
-		g.setColor(Color.white);
-		String mainMessage = message; // "Oh no..." 또는 "Congratulations!"
-		FontMetrics fm = g.getFontMetrics();
-
-		// 1. 주 메시지 출력
-		g.drawString(mainMessage, (1200 - fm.stringWidth(mainMessage)) / 2, 250);
-		g.drawString(PRESS_ANY_KEY_MESSAGE, (1200 - fm.stringWidth(PRESS_ANY_KEY_MESSAGE)) / 2, 300);
-
-		// 2. 최고 점수 안내문 표시
-		if (newHighScoreAchieved) {
-			g.setColor(Color.YELLOW);
-			g.setFont(new Font(FONT_ARIAL, Font.BOLD, 30));
-
-			// message 변수가 이미 설정된 상태이므로, 'score' 변수는 아직 초기화되지 않은
-			// 최종 점수 값을 가지고 있습니다. (notifyDeath/Win에서 score=0 전에 호출됨)
-			String highMsg = "🎉 New High Score! (" + finalScore + ")";
-
-			FontMetrics fm30 = g.getFontMetrics();
-			// Y 좌표 400에 출력 (기존 메시지 아래)
-			g.drawString(highMsg, (1200 - fm30.stringWidth(highMsg)) / 2, 400);
-		}
-
-		// 폰트와 색상 복구 (선택 사항이지만 안전합니다)
-		g.setColor(Color.white);
-		g.setFont(new Font(FONT_ARIAL, Font.PLAIN, 12)); // 원래 폰트로 복구 (Game.java에서 기본 폰트 설정이 필요할 수 있음)
-	}
 
 	/**
 	 * Handle player input during gameplay
@@ -1943,5 +1476,12 @@ public class Game extends Canvas {
 		if (arr != null && arr.length == itemUICounts.length) {
 			for (int i = 0; i < itemUICounts.length; i++) itemUICounts[i] = arr[i];
 		}
+		updateItemPanelRenderer();
+	}
+
+	/** Update ItemPanelRenderer with current state */
+	private void updateItemPanelRenderer() {
+		boolean isLoggedIn = (firebaseManager != null && firebaseManager.isLoggedIn());
+		itemPanelRenderer = new ItemPanelRenderer(itemUIList, itemUICounts, itemUIIcons, isLoggedIn);
 	}
 }

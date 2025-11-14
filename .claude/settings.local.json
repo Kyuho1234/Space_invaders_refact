@@ -3,7 +3,8 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(mvn clean compile:*)",
-      "Bash(where mvn:*)"
+      "Bash(where mvn:*)",
+      "Bash(javac:*)"
     ],
     "deny": [],
     "ask": []
