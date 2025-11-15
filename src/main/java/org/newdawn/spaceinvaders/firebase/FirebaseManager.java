@@ -56,7 +56,6 @@ public final class FirebaseManager {
     private String projectId;
     private String databaseId = "(default)";
     private final String firestoreApiRoot = "https://firestore.googleapis.com/v1";
-    private static final FirebaseManager INSTANCE = new FirebaseManager();
 
     private String idToken;
     private String refreshToken;
@@ -66,7 +65,14 @@ public final class FirebaseManager {
 
     private FirebaseManager() {}
 
-    public static FirebaseManager getInstance() { return INSTANCE; }
+    // Lazy-loaded Singleton Holder
+    private static class Holder {
+        private static final FirebaseManager INSTANCE = new FirebaseManager();
+    }
+
+    public static FirebaseManager getInstance() {
+        return Holder.INSTANCE;
+    }
 
     private String documentsBase() {
         if (projectId == null || databaseId == null) return null;
