@@ -581,7 +581,7 @@ public class Game extends Canvas {
 		fireStamps[index] = now;
 
 
-		ShotEntity shot = new ShotEntity(this, "sprites/shot.gif", shooter.getX() + 10, shooter.getY() - 30);
+		ShotEntity shot = new ShotEntity(this, shooter.getX() + 10, shooter.getY() - 30);
 		entities.add(shot);
 	}
 

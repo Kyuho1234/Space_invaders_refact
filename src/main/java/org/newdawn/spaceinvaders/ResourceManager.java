@@ -1,4 +1,4 @@
-package org.newdawn.spaceinvaders.resources;
+package org.newdawn.spaceinvaders;
 
 import javax.imageio.ImageIO;
 import java.awt.Image;

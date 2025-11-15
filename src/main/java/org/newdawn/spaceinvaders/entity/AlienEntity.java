@@ -8,6 +8,10 @@ import org.newdawn.spaceinvaders.GameConstants;
 import org.newdawn.spaceinvaders.Sprite;
 import org.newdawn.spaceinvaders.SpriteStore;
 import org.newdawn.spaceinvaders.entity.movement.*;
+import org.newdawn.spaceinvaders.ResourceManager;
+import org.newdawn.spaceinvaders.Assets;
+import org.newdawn.spaceinvaders.entity.Entity; 
+
 
 /**
  * An entity which represents one of our space invader aliens.
@@ -80,7 +84,7 @@ public class AlienEntity extends Entity {
 	 * @param type The type of alien to create
 	 */
 	public AlienEntity(Game game,int x,int y, AlienType type) {
-		super("sprites/alien.gif",x,y);
+		super(ResourceManager.loadImage(Assets.ALIEN), x, y);
 
 		this.game = game;
 		this.originalY = y;
@@ -190,9 +194,9 @@ public class AlienEntity extends Entity {
 	 */
 	private void setupAnimationFrames() {
 		// Get base sprites
-		Sprite baseSprite = SpriteStore.get().getSprite("sprites/alien.gif");
-		Sprite baseSprite2 = SpriteStore.get().getSprite("sprites/alien2.gif");
-		Sprite baseSprite3 = SpriteStore.get().getSprite("sprites/alien3.gif");
+		Sprite baseSprite = new Sprite(ResourceManager.loadImage(Assets.ALIEN));
+		Sprite baseSprite2 = new Sprite(ResourceManager.loadImage(Assets.ALIEN2));
+		Sprite baseSprite3 = new Sprite(ResourceManager.loadImage(Assets.ALIEN3));
 
 		// Apply color tinting based on alien type
 		Color tintColor = getTintColor();
