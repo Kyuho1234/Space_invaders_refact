@@ -9,8 +9,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
@@ -68,6 +68,16 @@
                 <configuration>
                     <!-- 기본 실행 클래스로 지정해두면 매번 -D 옵션 안 써도 됩니다 -->
                     <mainClass>org.newdawn.spaceinvaders.firebase.MainMenu</mainClass>
+                    <systemProperties>
+            <systemProperty>
+                <key>sun.java2d.metal</key>
+                <value>false</value>
+            </systemProperty>
+            <systemProperty>
+                <key>java.awt.headless</key>
+                <value>false</value>
+            </systemProperty>
+        </systemProperties>
                 </configuration>
             </plugin>
             <plugin>

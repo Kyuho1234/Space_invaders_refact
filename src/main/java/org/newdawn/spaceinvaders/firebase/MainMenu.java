@@ -8,7 +8,7 @@ import java.awt.*;
 import org.newdawn.spaceinvaders.items.GameItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JFrame;
+
 import org.newdawn.spaceinvaders.settings.SettingsDialog;
 import org.newdawn.spaceinvaders.firebase.RankingDialog;
 import org.newdawn.spaceinvaders.firebase.RankingDialog;
@@ -204,16 +204,16 @@ public class MainMenu extends JFrame {
 
 
     public static void main(String[] args) {
-        // OS 룩앤필
-        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception ignore) {}
+
+        // macOS에서 생기는 UI 문제 해결 - 수영
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Exception ignore) {}
 
         // Firebase 초기화
         FirebaseManager.getInstance().initialize();
+
+        // MainMenu UI 실행 (EDT)
         SwingUtilities.invokeLater(() -> new MainMenu().setVisible(true));
-
-
-
-
-
     }
 }
