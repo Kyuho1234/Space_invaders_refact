@@ -243,6 +243,7 @@ public class Game extends Canvas {
 		// --- 여기까지 수정 ---
 
 		container.addWindowListener(new WindowAdapter() {
+			@Override
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
 			}
@@ -1062,203 +1063,127 @@ public class Game extends Canvas {
 	 * @author Kevin Glass
 	 */
 	private class KeyInputHandler extends KeyAdapter {
-		private int pressCount = 1;
+	    private int pressCount = 1;
 
-		@Override
-		public void keyPressed(KeyEvent e) {
-			if (stageSelectActive) {
-				handleStageSelectInput(e);
-				return;
-			}
+	    @Override
+	    public void keyPressed(KeyEvent e) {
+	        int keyCode = e.getKeyCode();
 
-			if (waitingForKeyPress) {
-				return;
-			}
+	        if (stageSelectActive) {
+	            handleStageSelection(keyCode);
+	            return;
+	        }
 
-			if (handlePauseInput(e)) {
-				return;
-			}
+	        if (waitingForKeyPress || pausePromptActive) return;
 
-			if (pausePromptActive) {
-				return;
-			}
+	        if (handlePauseKeys(keyCode)) return;
 
-			handlePlayerMovementInput(e);
-			handleItemUsageInput(e);
-		}
+	        handlePlayerControls(keyCode);
+	        handleItemKeys(keyCode);
+	    }
 
-		/**
-		 * Handle input during stage selection
-		 */
-		private void handleStageSelectInput(KeyEvent e) {
-			int keyCode = e.getKeyCode();
+	    private void handleStageSelection(int keyCode) {
+	        switch (keyCode) {
+	            case KeyEvent.VK_LEFT -> selectedStage = Math.max(1, selectedStage - 1);
+	            case KeyEvent.VK_RIGHT -> selectedStage = Math.min(5, maxClearedStage + 1);
+	            case KeyEvent.VK_ENTER -> {
+	                stateManager.setCurrentStage(selectedStage);
+	                stageSelectActive = false;
+	                enemyLastFire = SystemTimer.getTime();
+	                startGame();
+	            }
+	            case KeyEvent.VK_ESCAPE -> {
+	                stageSelectActive = false;
+	                returnToMainMenu();
+	            }
+	        }
+	    }
 
-			if (keyCode == KeyEvent.VK_LEFT) {
-				selectedStage = Math.max(1, selectedStage - 1);
-			} else if (keyCode == KeyEvent.VK_RIGHT) {
-				int maxSelectableStage = Math.min(5, maxClearedStage + 1);
-				selectedStage = Math.min(maxSelectableStage, selectedStage + 1);
-			} else if (keyCode == KeyEvent.VK_ENTER) {
-				stateManager.setCurrentStage(selectedStage);
-				stageSelectActive = false;
-				enemyLastFire = SystemTimer.getTime();
-				startGame();
-			} else if (keyCode == KeyEvent.VK_ESCAPE) {
-				stageSelectActive = false;
-				returnToMainMenu();
-			}
-		}
+	    private boolean handlePauseKeys(int keyCode) {
+	        if (keyCode == KeyEvent.VK_ESCAPE && !waitingForKeyPress) {
+	            if (!pausePromptActive) pausePromptActive = true;
+	            else {
+	                awardCurrentScoreAsPoints();
+	                returnToMainMenu();
+	            }
+	            return true;
+	        }
+	        if (keyCode == KeyEvent.VK_SPACE && pausePromptActive) {
+	            pausePromptActive = false;
+	            return true;
+	        }
+	        return false;
+	    }
 
-		/**
-		 * Handle pause/resume input
-		 * @return true if pause state was handled
-		 */
-		private boolean handlePauseInput(KeyEvent e) {
-			int keyCode = e.getKeyCode();
+	    private void handlePlayerControls(int keyCode) {
+	        switch (keyCode) {
+	            // Player 1
+	            case KeyEvent.VK_LEFT -> leftPressed = true;
+	            case KeyEvent.VK_RIGHT -> rightPressed = true;
+	            case KeyEvent.VK_SPACE -> firePressed = true;
+	            // Player 2
+	            case KeyEvent.VK_A -> leftPressed2 = true;
+	            case KeyEvent.VK_D -> rightPressed2 = true;
+	            case KeyEvent.VK_W -> firePressed2 = true;
+	        }
+	    }
 
-			if (keyCode == KeyEvent.VK_ESCAPE && !waitingForKeyPress) {
-				if (!pausePromptActive) {
-					pausePromptActive = true;
-				} else {
-					awardCurrentScoreAsPoints();
-					returnToMainMenu();
-				}
-				return true;
-			}
+	    private void handleItemKeys(int keyCode) {
+	        if (itemManager == null) return;
+	        String itemId = switch (keyCode) {
+	            case KeyEvent.VK_1 -> ItemManager.ID_AMMO;
+	            case KeyEvent.VK_2 -> ItemManager.ID_DOUBLE_SCORE;
+	            case KeyEvent.VK_3 -> ItemManager.ID_INVINCIBILITY;
+	            case KeyEvent.VK_4 -> ItemManager.ID_PLUS_LIFE;
+	            default -> null;
+	        };
+	        if (itemId != null) {
+	            ItemManager.Effect eff = itemManager.use(itemId);
+	            syncItemCountsFromManager();
+	            if (eff == ItemManager.Effect.PLUS_LIFE) applyHealthBoost();
+	        }
+	    }
 
-			if (keyCode == KeyEvent.VK_SPACE && pausePromptActive) {
-				pausePromptActive = false;
-				return true;
-			}
+	    private void applyHealthBoost() {
+	        if (playerHealth > 0)
+	            playerHealth = Math.min(playerMaxHealth, playerHealth + 1);
+	        if (SettingsManager.isTwoPlayerEnabled() && player2Health > 0)
+	            player2Health = Math.min(player2MaxHealth, player2Health + 1);
+	    }
 
-			return false;
-		}
+	    @Override
+	    public void keyReleased(KeyEvent e) {
+	        int keyCode = e.getKeyCode();
+	        if (waitingForKeyPress || pausePromptActive) return;
 
-		/**
-		 * Handle player movement and fire input
-		 */
-		private void handlePlayerMovementInput(KeyEvent e) {
-			int keyCode = e.getKeyCode();
+	        switch (keyCode) {
+	            // Player 1
+	            case KeyEvent.VK_LEFT -> leftPressed = false;
+	            case KeyEvent.VK_RIGHT -> rightPressed = false;
+	            case KeyEvent.VK_SPACE -> firePressed = false;
+	            // Player 2
+	            case KeyEvent.VK_A -> leftPressed2 = false;
+	            case KeyEvent.VK_D -> rightPressed2 = false;
+	            case KeyEvent.VK_W -> firePressed2 = false;
+	        }
+	    }
 
-			// Player 1 controls
-			if (keyCode == KeyEvent.VK_LEFT) leftPressed = true;
-			else if (keyCode == KeyEvent.VK_RIGHT) rightPressed = true;
-			else if (keyCode == KeyEvent.VK_SPACE) firePressed = true;
+	    @Override
+	    public void keyTyped(KeyEvent e) {
+	        char keyChar = Character.toLowerCase(e.getKeyChar());
+	        if (waitingForKeyPress && "wasd ".indexOf(keyChar) == -1) {
+	            if (pressCount == 1) {
+	                waitingForKeyPress = false;
+	                enemyLastFire = System.currentTimeMillis();
+	                startGame();
+	                pressCount = 0;
+	            } else pressCount++;
+	        }
 
-			// Player 2 controls
-			else if (keyCode == KeyEvent.VK_A) leftPressed2 = true;
-			else if (keyCode == KeyEvent.VK_D) rightPressed2 = true;
-			else if (keyCode == KeyEvent.VK_W) firePressed2 = true;
-		}
-
-		/**
-		 * Handle item usage input (keys 1-4)
-		 */
-		private void handleItemUsageInput(KeyEvent e) {
-			if (itemManager == null) return;
-
-			String itemIdToUse = getItemIdFromKey(e.getKeyCode());
-			if (itemIdToUse == null) return;
-
-			ItemManager.Effect eff = itemManager.use(itemIdToUse);
-			syncItemCountsFromManager();
-
-			if (eff == ItemManager.Effect.PLUS_LIFE) {
-				applyHealthBoost();
-			}
-		}
-
-		/**
-		 * Map key code to item ID
-		 */
-		private String getItemIdFromKey(int keyCode) {
-			switch (keyCode) {
-				case KeyEvent.VK_1: return ItemManager.ID_AMMO;
-				case KeyEvent.VK_2: return ItemManager.ID_DOUBLE_SCORE;
-				case KeyEvent.VK_3: return ItemManager.ID_INVINCIBILITY;
-				case KeyEvent.VK_4: return ItemManager.ID_PLUS_LIFE;
-				default: return null;
-			}
-		}
-
-		/**
-		 * Apply health boost to players
-		 */
-		private void applyHealthBoost() {
-			if (playerHealth > 0) {
-				playerHealth = Math.min(playerMaxHealth, playerHealth + 1);
-			}
-
-			if (SettingsManager.isTwoPlayerEnabled() && player2Health > 0) {
-				player2Health = Math.min(player2MaxHealth, player2Health + 1);
-			}
-		}
-
-		@Override
-		public void keyReleased(KeyEvent e) {
-			// if we're waiting for an "any key" typed then we don't
-			// want to do anything with just a "released"
-			if (waitingForKeyPress) {
-				return;
-			}
-			// Don't process movement/fire if paused
-			if (pausePromptActive) {
-				return;
-			}
-			if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-				leftPressed = false;
-			}
-			if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-				rightPressed = false;
-			}
-			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-				firePressed = false;
-			}
-			//2p
-			if (e.getKeyCode() == KeyEvent.VK_A) {
-				leftPressed2 = false;
-			}
-			if (e.getKeyCode() == KeyEvent.VK_D) {
-				rightPressed2 = false;
-			}
-			if (e.getKeyCode() == KeyEvent.VK_W) {
-				firePressed2 = false;
-			}
-		}
-
-		@Override
-		public void keyTyped(KeyEvent e) {
-
-			if (waitingForKeyPress) {
-				char keyChar = Character.toLowerCase(e.getKeyChar());
-				// 게임 조작 키는 "아무 키"에서 제외
-				if (keyChar == 'w' || keyChar == 'a' || keyChar == 'd' || keyChar == ' ') {
-					return;
-				}
-
-				if (waitingForKeyPress) {
-					if (pressCount == 1) {
-						// since we've now recieved our key typed
-						// event we can mark it as such and start
-						// our new game
-						waitingForKeyPress = false;
-						enemyLastFire = System.currentTimeMillis();
-						startGame();
-						pressCount = 0;
-					} else {
-						pressCount++;
-					}
-			}
-
-			// ESC 키로 메뉴 복귀 (게임오버/승리 화면에서만)
-			if (e.getKeyChar() == 27 && waitingForKeyPress) {
-				returnToMainMenu();
-			}
-		}
-
-		// --- Helper Methods for keyPressed ---
-
-	}
+	        if (waitingForKeyPress && e.getKeyChar() == 27) {
+	            returnToMainMenu();
+	        }
+	    }
 	}
 
 
