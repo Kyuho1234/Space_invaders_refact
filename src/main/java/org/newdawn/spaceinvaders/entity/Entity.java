@@ -2,6 +2,7 @@ package org.newdawn.spaceinvaders.entity;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.Image;
 
 import org.newdawn.spaceinvaders.Sprite;
 import org.newdawn.spaceinvaders.SpriteStore;
@@ -47,6 +48,12 @@ public abstract class Entity {
 		this.sprite = SpriteStore.get().getSprite(ref);
 		this.x = x;
 		this.y = y;
+	}
+
+	public Entity(Image image, int x, int y) {
+	    this.sprite = new Sprite(image);
+	    this.x = x;
+	    this.y = y;
 	}
 	
 	/**
@@ -150,4 +157,8 @@ public abstract class Entity {
 	 * @param other The entity with which this entity collided.
 	 */
 	public abstract void collidedWith(Entity other);
+
+	public void setSprite(Sprite sprite) {
+		this.sprite = sprite;
+	}
 }

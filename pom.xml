@@ -68,6 +68,25 @@
                 <configuration>
                     <!-- 기본 실행 클래스로 지정해두면 매번 -D 옵션 안 써도 됩니다 -->
                     <mainClass>org.newdawn.spaceinvaders.firebase.MainMenu</mainClass>
+                    <systemProperties>
+            <systemProperty>
+                <key>sun.java2d.metal</key>
+                <value>false</value>
+            </systemProperty>
+            <systemProperty>
+                <key>java.awt.headless</key>
+                <value>false</value>
+            </systemProperty>
+        </systemProperties>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <!-- Use the Java "release" flag to set target and bootclasspath correctly -->
+                    <release>21</release>
                 </configuration>
             </plugin>
         </plugins>

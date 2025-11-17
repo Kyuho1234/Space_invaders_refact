@@ -2,6 +2,9 @@ package org.newdawn.spaceinvaders.entity;
 
 import org.newdawn.spaceinvaders.Game;
 import org.newdawn.spaceinvaders.GameConstants;
+import org.newdawn.spaceinvaders.ResourceManager;
+import org.newdawn.spaceinvaders.Assets;
+import org.newdawn.spaceinvaders.Sprite;
 
 /**
  * The entity that represents the players ship
@@ -16,13 +19,11 @@ public class ShipEntity extends Entity {
 	 * Create a new entity to represent the players ship
 	 *  
 	 * @param game The game in which the ship is being created
-	 * @param ref The reference to the sprite to show for the ship
 	 * @param x The initial x location of the player's ship
 	 * @param y The initial y location of the player's ship
 	 */
-	public ShipEntity(Game game,String ref,int x,int y) {
-		super(ref,x,y);
-		
+	public ShipEntity(Game game, int x, int y) {
+		super(ResourceManager.loadImage(Assets.PLAYER), x, y);
 		this.game = game;
 	}
 	

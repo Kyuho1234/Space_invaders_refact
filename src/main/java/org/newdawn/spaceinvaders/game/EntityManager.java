@@ -53,15 +53,13 @@ public class EntityManager {
         entities.clear();
 
         // Create player 1
-        ship = new ShipEntity(game, "sprites/ship.gif",
-                             GameConstants.PLAYER1_START_X, GameConstants.PLAYER1_START_Y);
+        ship = new ShipEntity(game, GameConstants.PLAYER1_START_X, GameConstants.PLAYER1_START_Y);
         entities.add(ship);
 
         // Create player 2 if enabled
         boolean twoPlayerEnabled = SettingsManager.isTwoPlayerEnabled();
         if (twoPlayerEnabled) {
-            ship2 = new ShipEntity(game, "sprites/ship.gif",
-                                  GameConstants.PLAYER2_START_X, GameConstants.PLAYER2_START_Y);
+            ship2 = new ShipEntity(game, GameConstants.PLAYER2_START_X, GameConstants.PLAYER2_START_Y);
             entities.add(ship2);
         } else {
             ship2 = null;
@@ -184,8 +182,7 @@ public class EntityManager {
         if (now - fireStamps[playerIndex] < firingInterval) return;
         fireStamps[playerIndex] = now;
 
-        ShotEntity shot = new ShotEntity(game, "sprites/shot.gif",
-                                        shooter.getX() + 10, shooter.getY() - 30);
+        ShotEntity shot = new ShotEntity(game, shooter.getX() + 10, shooter.getY() - 30);
         entities.add(shot);
     }
 
