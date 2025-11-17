@@ -8,7 +8,7 @@ import java.awt.*;
 import org.newdawn.spaceinvaders.items.GameItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JFrame;
+
 import org.newdawn.spaceinvaders.settings.SettingsDialog;
 import org.newdawn.spaceinvaders.firebase.RankingDialog;
 import org.newdawn.spaceinvaders.firebase.RankingDialog;
@@ -114,11 +114,22 @@ public class MainMenu extends JFrame {
     }
 
     private void setupEventHandlers() {
-        // 게임 시작
-        startGameButton.addActionListener(e -> startGame());
+        ActionListener menuActionListener = this::handleMenuAction;
 
-        // 로그인 / 로그아웃 / 회원가입
-        loginButton.addActionListener(e -> {
+        startGameButton.addActionListener(menuActionListener);
+        loginButton.addActionListener(menuActionListener);
+        rankingButton.addActionListener(menuActionListener);
+        storeButton.addActionListener(menuActionListener);
+        settingsButton.addActionListener(menuActionListener);
+        exitButton.addActionListener(menuActionListener);
+    }
+
+    private void handleMenuAction(ActionEvent e) {
+        Object src = e.getSource();
+
+        if (src == startGameButton) {
+            startGame();
+        } else if (src == loginButton) {
             if (FirebaseManager.getInstance().isLoggedIn()) {
                 int result = JOptionPane.showConfirmDialog(
                         this,
@@ -137,33 +148,16 @@ public class MainMenu extends JFrame {
                     updateUserStatus();
                 }
             }
-        });
-
-        // 랭킹
-        rankingButton.addActionListener(e -> {
-            // 🚀 RankingDialog를 생성하고 표시하는 로직으로 대체
-            // 부모 프레임(MainMenu)을 인수로 전달합니다.
+        } else if (src == rankingButton) {
             RankingDialog rankingDialog = new RankingDialog(MainMenu.this);
             rankingDialog.setVisible(true);
-        });
-
-        //store
-        storeButton.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent e){
-                showStore(); //새로운 메서드 호출
-            }
-        });
-
-
-        // 설정
-        settingsButton.addActionListener(e -> {
+        } else if (src == storeButton) {
+            showStore();
+        } else if (src == settingsButton) {
             new SettingsDialog(this).setVisible(true);
-                });
-
-
-        // 종료
-        exitButton.addActionListener(e -> System.exit(0));
+        } else if (src == exitButton) {
+            System.exit(0);
+        }
     }
 
     private void startGame() {
@@ -204,16 +198,16 @@ public class MainMenu extends JFrame {
 
 
     public static void main(String[] args) {
-        // OS 룩앤필
-        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception ignore) {}
+
+        // macOS에서 생기는 UI 문제 해결 - 수영
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Exception ignore) {}
 
         // Firebase 초기화
         FirebaseManager.getInstance().initialize();
+
+        // MainMenu UI 실행 (EDT)
         SwingUtilities.invokeLater(() -> new MainMenu().setVisible(true));
-
-
-
-
-
     }
 }
