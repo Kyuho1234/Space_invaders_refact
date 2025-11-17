@@ -37,7 +37,7 @@ public class MainMenu extends JFrame {
 
         private void initializeUI() {
         setTitle("Space Invaders - Main Menu");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setSize(800, 700);
         setLocationRelativeTo(null);
         setResizable(false);
