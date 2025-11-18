@@ -5,6 +5,9 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 
 /**
  * Firebase HTTP 통신을 담당하는 클래스
@@ -12,6 +15,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class FirebaseHttpClient {
     private String idToken;
+    private static final Logger logger = Logger.getLogger(FirebaseHttpClient.class.getName());
 
     public void setIdToken(String idToken) {
         this.idToken = idToken;
@@ -59,7 +63,8 @@ public class FirebaseHttpClient {
 
         InputStream is = conn.getErrorStream();
         String text = (is != null) ? readAll(is) : conn.getResponseMessage();
-        System.err.println("DELETE error(" + code + "): " + text);
+
+        logger.log(Level.WARNING, "DELETE error({0}): {1}", new Object[]{code, text});
         return false;
     }
 
@@ -84,7 +89,7 @@ public class FirebaseHttpClient {
         if (code >= 200 && code < 300) {
             return new JSONObject(text);
         } else {
-            System.err.println("HTTP error(" + code + "): " + text);
+            logger.log(Level.WARNING, "HTTP error({0}): {1}", new Object[]{code, text});
             return null;
         }
     }

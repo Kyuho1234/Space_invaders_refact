@@ -27,12 +27,5 @@ public class PlusLifeItem extends GameItem {
     
     // 이 클래스에 다른 특별한 메서드가 필요하다면 추가할 수 있습니다.
     // 예를 들어, 나중에 게임 로직이 구현되면 아래 주석 부분을 추가할 수 있습니다.
-    
-    /*
-    @Override
-    public void applyEffect(Game game) {
-        // 실제 게임 객체에 목숨을 추가하는 로직을 여기에 구현
-        game.getPlayer().addLife(1); 
-    }
-    */
+
 }

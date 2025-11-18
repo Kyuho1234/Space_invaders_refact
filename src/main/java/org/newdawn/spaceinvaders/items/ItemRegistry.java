@@ -21,7 +21,6 @@ public class ItemRegistry {
         items.put("PLUS_LIFE", new PlusLifeItem()); 
         
         // 2. 다른 아이템을 추가할 때 여기에 넣습니다.
-        // items.put("LASER_UPGRADE", new LaserUpgradeItem());
         items.put("DOUBLE_SCORE", new DoubleScoreItem());
 
         items.put("INVINCIBILITY", new InvincibilityItem());

@@ -115,8 +115,10 @@ public class FirebaseAuthManager {
         long expiresInSec = 0L;
         try {
             expiresInSec = Long.parseLong(res.optString("expiresIn", "0"));
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
 
         this.expiresAtMs = (expiresInSec > 0) ? System.currentTimeMillis() + expiresInSec * 1000L : 0L;
     }
 }
+

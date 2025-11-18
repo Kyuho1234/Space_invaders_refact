@@ -33,6 +33,7 @@ public class ShipEntity extends Entity {
 	 * 
 	 * @param delta The time that has elapsed since last move (ms)
 	 */
+	@Override
 	public void move(long delta) {
 		// if we're moving left and have reached the left hand side
 		// of the screen, don't move

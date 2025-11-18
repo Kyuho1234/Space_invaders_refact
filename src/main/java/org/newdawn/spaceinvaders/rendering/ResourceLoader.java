@@ -3,12 +3,14 @@ package org.newdawn.spaceinvaders.rendering;
 import java.awt.Image;
 import java.net.URL;
 import javax.swing.ImageIcon;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 /**
  * Utility class for loading image resources from classpath.
  * Handles multiple path variants and provides logging for missing resources.
  */
 public final class ResourceLoader {
+    private static final Logger logger = Logger.getLogger(ResourceLoader.class.getName());
 
     private ResourceLoader() {
         throw new AssertionError("Cannot instantiate ResourceLoader");
@@ -26,7 +28,8 @@ public final class ResourceLoader {
                 return image;
             }
         }
-        System.out.println("[WARN] Image resource not found: " + java.util.Arrays.toString(candidates));
+        // {0}: 찾지 못한 파일 경로 후보들 (Arrays.toString 결과)
+        logger.log(Level.WARNING, "Image resource not found: {0}", java.util.Arrays.toString(candidates));
         return null;
     }
 

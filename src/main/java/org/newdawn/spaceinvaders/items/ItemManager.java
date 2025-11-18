@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Item usage/stack management & buff runtime logic.
@@ -26,6 +28,7 @@ public class ItemManager {
     public static final String ID_PLUS_LIFE = "plus_life";        // item_plusLife.png
 
     private final FirebaseManager firebase; // 선택 사용 (소비 동기화 등 향후 확장용)
+    private static final Logger logger = Logger.getLogger(ItemManager.class.getName());
 
     // 보유 수량: key는 논리 id (위 상수 4종) 또는 Registry의 id를 소문자로 매핑
     private final Map<String, Integer> counts = new HashMap<>();
@@ -125,7 +128,8 @@ public class ItemManager {
             }
         } else {
             // 4. DB 삭제 실패 시, 아이템은 소모되지 않은 것으로 처리
-            System.err.println("[ItemManager] Item DB deletion failed. Usage cancelled.");
+
+            logger.log(Level.INFO, "[ItemManager] Item DB deletion failed. Usage cancelled.");
         }
 
         return Effect.NONE;
