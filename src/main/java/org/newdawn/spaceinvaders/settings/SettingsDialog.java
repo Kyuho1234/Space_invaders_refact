@@ -31,7 +31,7 @@ public class SettingsDialog extends JDialog {
      */
 
     private void initializeUI() {
-        // setSize(300, 250);  <-- 이 줄을 지우거나 주석 처리하세요 (pack()을 쓸 겁니다)
+
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout());
 
@@ -39,7 +39,7 @@ public class SettingsDialog extends JDialog {
         JPanel playerSelectionPanel = new JPanel();
         playerSelectionPanel.setBorder(BorderFactory.createTitledBorder("Player Mode"));
 
-        // 💡 [수정 1] BoxLayout 사용: 컴포넌트를 위에서 아래(Y_AXIS)로 자연스럽게 쌓습니다.
+
         playerSelectionPanel.setLayout(new BoxLayout(playerSelectionPanel, BoxLayout.Y_AXIS));
 
         onePlayerRadioButton = new JRadioButton("1 Player");
@@ -73,9 +73,13 @@ public class SettingsDialog extends JDialog {
         add(playerSelectionPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // 💡 [수정 2] pack() 호출: 내용물의 크기에 맞춰 창 크기를 '자동'으로 조절합니다.
-        // 잘림 현상을 방지하는 가장 좋은 방법입니다.
-        pack();
+        add(playerSelectionPanel, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        setSize(400, 350); // 가로 400, 세로 350
+
+
+        setLocationRelativeTo(getParent());
     }
 
     private void loadCurrentSettings(){
