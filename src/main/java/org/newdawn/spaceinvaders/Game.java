@@ -1071,6 +1071,9 @@ public class Game extends Canvas {
 	                stageSelectActive = false;
 	                returnToMainMenu();
 	            }
+	            default -> {
+	                // No action for other keys
+	            }
 	        }
 	    }
 
@@ -1100,6 +1103,9 @@ public class Game extends Canvas {
 	            case KeyEvent.VK_A -> leftPressed2 = true;
 	            case KeyEvent.VK_D -> rightPressed2 = true;
 	            case KeyEvent.VK_W -> firePressed2 = true;
+	            default -> {
+	                // No action for other keys
+	            }
 	        }
 	    }
 
@@ -1140,6 +1146,9 @@ public class Game extends Canvas {
 	            case KeyEvent.VK_A -> leftPressed2 = false;
 	            case KeyEvent.VK_D -> rightPressed2 = false;
 	            case KeyEvent.VK_W -> firePressed2 = false;
+	            default -> {
+	                // No action for other keys
+	            }
 	        }
 	    }
 
