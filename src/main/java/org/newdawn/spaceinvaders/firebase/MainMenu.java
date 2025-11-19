@@ -204,16 +204,23 @@ public class MainMenu extends JFrame {
 
 
     public static void main(String[] args) {
-        // OS 룩앤필
-        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception ignore) {}
+        // 🔹 macOS UI 깨짐 방지 및 DPI 스케일링 문제 해결
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Space Invaders");
+        System.setProperty("sun.java2d.uiScale", "1.0");
 
-        // Firebase 초기화
+        // 🔹 OS Look & Feel 적용
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignore) {}
+
+        // 🔹 Firebase 초기화
         FirebaseManager.getInstance().initialize();
-        SwingUtilities.invokeLater(() -> new MainMenu().setVisible(true));
 
-
-
-
-
+        // 🔹 모든 Swing UI는 EDT(Thread)에서 실행
+        SwingUtilities.invokeLater(() -> {
+            MainMenu main = new MainMenu();
+            main.setVisible(true);
+        });
     }
 }
