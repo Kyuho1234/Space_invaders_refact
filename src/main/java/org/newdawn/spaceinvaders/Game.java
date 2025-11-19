@@ -552,11 +552,17 @@ public class Game extends Canvas {
 
 	// 특정 플레이어로부터 사격시도
 	private void tryToFireFrom(Entity shooter, int index) {
+		// ItemManager의 발사 속도 배수 적용
+		long effectiveInterval = firingInterval;
+		if (itemManager != null) {
+			effectiveInterval = (long) Math.max(1, Math.round(firingInterval * itemManager.currentFireRateMultiplier()));
+		}
+
 		long now = System.currentTimeMillis();
-		if (now - fireStamps[index] < firingInterval) return;
+		if (now - fireStamps[index] < effectiveInterval) return;
 		fireStamps[index] = now;
 
-
+		// 발사
 		ShotEntity shot = new ShotEntity(this, shooter.getX() + 10, shooter.getY() - 30);
 		entities.add(shot);
 	}
@@ -1049,9 +1055,10 @@ public class Game extends Canvas {
 	            return;
 	        }
 
-	        if (waitingForKeyPress || pausePromptActive) return;
-
+	        // Pause keys should be handled even when paused
 	        if (handlePauseKeys(keyCode)) return;
+
+	        if (waitingForKeyPress || pausePromptActive) return;
 
 	        handlePlayerControls(keyCode);
 	        handleItemKeys(keyCode);

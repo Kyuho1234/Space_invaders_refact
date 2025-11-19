@@ -564,27 +564,32 @@ public final class FirebaseManager {
         // getPurchasedItemDetails()를 사용하여 모든 아이템 인스턴스를 가져옵니다.
         List<Map<String, String>> itemDetails = getPurchasedItemDetails();
 
-        // 🚀 [수정된 부분]: 문서 이름이 아닌 itemId를 기준으로 찾습니다.
+        logger.log(Level.INFO, "[Firebase] Attempting to delete item with ID: {0}", itemId);
+        logger.log(Level.INFO, "[Firebase] Total items in database: {0}", itemDetails.size());
+
+        // 🚀 ItemManager가 이미 Firebase ID(DUAL_FIRE 등)를 사용하므로 직접 매칭
         String docNameToDelete = null;
-        
+
         // 1. 메모리에서 원하는 itemId를 가진 첫 번째 문서 (가장 먼저 조회된 = FIFO)를 찾습니다.
         // 대소문자를 무시하고 비교합니다.
         for (Map<String, String> detail : itemDetails) {
             String storedItemId = detail.get(FIELD_ITEM_ID);
+            logger.log(Level.INFO, "[Firebase] Checking stored item: {0}", storedItemId);
+
             if (storedItemId != null && storedItemId.equalsIgnoreCase(itemId)) {
                 docNameToDelete = detail.get("name"); // 고유 문서 이름 획득
+                logger.log(Level.INFO, "[Firebase] Match found! Document name: {0}", docNameToDelete);
                 break;
             }
         }
 
         if (docNameToDelete == null) {
-            logger.log(Level.INFO, "[Firebase] Item not found to delete: ", itemId);
+            logger.log(Level.WARNING, "[Firebase] Item not found to delete: {0}", itemId);
             return false;
         }
 
         // 2. 찾은 고유 문서 이름으로 삭제를 요청합니다.
-        return deleteItemByDocumentName(docNameToDelete); 
-        // 내부적으로 deleteItemByDocumentName(String) 메소드를 사용하도록 변경하여 로직 통합
+        return deleteItemByDocumentName(docNameToDelete);
     }
 
     // FirebaseManager.java (아래 두 메서드를 추가합니다)

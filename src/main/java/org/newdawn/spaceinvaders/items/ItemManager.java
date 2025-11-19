@@ -22,10 +22,11 @@ public class ItemManager {
     public enum Effect { NONE, AMMO_BOOST, DOUBLE_SCORE, INVINCIBILITY, PLUS_LIFE }
 
     // 표준 슬롯 순서 (좌측 패널과 동일): 0=AMMO, 1=DOUBLE_SCORE, 2=INVINCIBILITY, 3=PLUS_LIFE
-    public static final String ID_AMMO = "ammo";                 // item_ammo_boost.png
-    public static final String ID_DOUBLE_SCORE = "double_score";  // item_double_score.png
-    public static final String ID_INVINCIBILITY = "invincibility";// item_invincibility.png
-    public static final String ID_PLUS_LIFE = "plus_life";        // item_plusLife.png
+    // Firebase에 저장되는 ID와 일치시킵니다 (ItemRegistry 참조)
+    public static final String ID_AMMO = "DUAL_FIRE";            // item_ammo_boost.png
+    public static final String ID_DOUBLE_SCORE = "DOUBLE_SCORE"; // item_double_score.png
+    public static final String ID_INVINCIBILITY = "INVINCIBILITY"; // item_invincibility.png
+    public static final String ID_PLUS_LIFE = "PLUS_LIFE";       // item_plusLife.png
 
     private final FirebaseManager firebase; // 선택 사용 (소비 동기화 등 향후 확장용)
     private static final Logger logger = Logger.getLogger(ItemManager.class.getName());
@@ -196,15 +197,22 @@ public class ItemManager {
     }
 
     private static String normalizeFromImageFilename(String s) {
-        if (s.contains("item_ammo_boost")) return ID_AMMO;
+        if (s.contains("item_ammo_boost") || s.contains("item_dual_fire")) return ID_AMMO;
         if (s.contains("item_double_score")) return ID_DOUBLE_SCORE;
         if (s.contains("item_invincibility")) return ID_INVINCIBILITY;
-        if (s.contains("item_pluslife")) return ID_PLUS_LIFE;
+        if (s.contains("item_pluslife") || s.contains("item_plus_life")) return ID_PLUS_LIFE;
         return null;
     }
 
     private static String normalizeFromKeyword(String s) {
-        if (s.contains("ammo")) return ID_AMMO;
+        // Firebase에 저장된 ID와 직접 매칭
+        if (s.equals("dual_fire") || s.equals("dualfire")) return ID_AMMO;
+        if (s.equals("double_score")) return ID_DOUBLE_SCORE;
+        if (s.equals("invincibility")) return ID_INVINCIBILITY;
+        if (s.equals("plus_life") || s.equals("pluslife")) return ID_PLUS_LIFE;
+
+        // 레거시 키워드 지원 (하위 호환성)
+        if (s.contains("ammo") || s.contains("dual") || s.contains("fire")) return ID_AMMO;
         if (s.contains("double") || s.contains("score")) return ID_DOUBLE_SCORE;
         if (s.contains("invinc") || s.contains("shield")) return ID_INVINCIBILITY;
         if (s.contains("life")) return ID_PLUS_LIFE;
