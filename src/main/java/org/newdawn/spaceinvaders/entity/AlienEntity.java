@@ -261,6 +261,8 @@ public class AlienEntity extends Entity {
 	 *
 	 * @param delta The time that has elapsed since last move
 	 */
+
+	@Override
 	public void move(long delta) {
 		// since the move tells us how much time has passed
 		// by we can use it to drive the animation, however
@@ -302,9 +304,8 @@ public class AlienEntity extends Entity {
 		super.move(delta);
 	}
 
-	/**
-	 * Update the game logic related to aliens
-	 */
+
+	@Override
 	public void doLogic() {
 		// swap over horizontal movement and move down the
 		// screen a bit

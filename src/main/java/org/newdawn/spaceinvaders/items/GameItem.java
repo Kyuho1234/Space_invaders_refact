@@ -58,6 +58,5 @@ public abstract class GameItem {
     /**
      * 추후에 아이템의 실제 효과를 구현하기 위한 추상 메서드.
      * @param game 게임 객체 또는 플레이어 객체
-     */
-    // public abstract void applyEffect(Game game); 
+     **/
 }

@@ -25,12 +25,5 @@ public class DualFireItem extends GameItem {
         // 부모 생성자 호출: super(id, name, description, imageFileName, price)
         super(ITEM_ID, ITEM_NAME, ITEM_DESC, ITEM_IMAGE, ITEM_PRICE);
     }
-    
-    /*
-    @Override
-    public void applyEffect(Game game) {
-        // 실제 게임 객체에 탄환을 추가하는 로직을 여기에 구현
-        // game.getPlayer().addAmmo(20); 
-    }
-    */
+
 }

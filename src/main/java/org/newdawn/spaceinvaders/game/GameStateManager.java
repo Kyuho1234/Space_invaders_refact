@@ -3,7 +3,8 @@ package org.newdawn.spaceinvaders.game;
 import org.newdawn.spaceinvaders.GameConstants;
 import org.newdawn.spaceinvaders.firebase.FirebaseManager;
 import org.newdawn.spaceinvaders.settings.SettingsManager;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 /**
  * Manages all game state including scores, stages, health, and game flow states.
  * Follows Single Responsibility Principle - only handles game state.
@@ -41,6 +42,7 @@ public class GameStateManager {
     private long enemyFiringInterval = 1200;
 
     private final FirebaseManager firebaseManager;
+    private static final Logger logger = Logger.getLogger(GameStateManager.class.getName());
 
     public GameStateManager(FirebaseManager firebaseManager) {
         this.firebaseManager = firebaseManager;
@@ -83,10 +85,11 @@ public class GameStateManager {
 
         moveSpeed = 300 * Math.pow(1.12, speedLevel);
 
-        System.out.println("[Permanent Upgrades Applied]");
-        System.out.println("  Attack Level " + attackLevel + ": Fire Interval = " + firingInterval + "ms");
-        System.out.println("  Health Level " + healthLevel + ": Max HP = " + playerMaxHealth);
-        System.out.println("  Speed Level " + speedLevel + ": Move Speed = " + moveSpeed);
+        logger.info("[Permanent Upgrades Applied]");
+        // {0}: 레벨, {1}: 상세 수치
+        logger.log(Level.INFO, "  Attack Level {0}: Fire Interval = {1}ms", new Object[]{attackLevel, firingInterval});
+        logger.log(Level.INFO, "  Health Level {0}: Max HP = {1}", new Object[]{healthLevel, playerMaxHealth});
+        logger.log(Level.INFO, "  Speed Level {0}: Move Speed = {1}", new Object[]{speedLevel, moveSpeed});
     }
 
     /**
@@ -127,7 +130,8 @@ public class GameStateManager {
         if (currentStage > maxClearedStage) {
             if (firebaseManager != null && firebaseManager.isLoggedIn()) {
                 firebaseManager.saveMaxClearedStage(currentStage - 1);
-                System.out.println("DEATH: Saved *previous* stage " + (currentStage - 1) + " as max.");
+                // {0}: 저장된 스테이지 번호
+                logger.log(Level.INFO, "DEATH: Saved *previous* stage {0} as max.", (currentStage - 1));
             }
         }
 
@@ -207,9 +211,12 @@ public class GameStateManager {
 
         newHighScoreAchieved = newHigh;
 
-        System.out.println("Score: " + score + " saved as points. Total Points: " + newPoints);
+        // {0}: 획득 점수, {1}: 누적 포인트
+        logger.log(Level.INFO, "Score: {0} saved as points. Total Points: {1}", new Object[]{score, newPoints});
         if (newHigh) {
-            System.out.println("🎉 NEW HIGH SCORE ACHIEVED: " + score);
+                // {0}: 신기록 점수
+                logger.log(Level.INFO, "🎉 NEW HIGH SCORE ACHIEVED: {0}", score);
+
         }
     }
 

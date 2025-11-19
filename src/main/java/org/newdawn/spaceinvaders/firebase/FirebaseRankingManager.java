@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Firebase Ranking Manager
@@ -22,13 +24,15 @@ public class FirebaseRankingManager {
     private static final String DOCUMENTS = "documents";
 
     private final FirebaseHttpClient httpClient;
-    private final String projectId;
+
     private final String apiKey;
     private final String documentsBase;
 
+    private static final Logger logger = Logger.getLogger(FirebaseRankingManager.class.getName());
+
     public FirebaseRankingManager(FirebaseHttpClient httpClient, String projectId, String apiKey) {
         this.httpClient = httpClient;
-        this.projectId = projectId;
+
         this.apiKey = apiKey;
         this.documentsBase = String.format(
             "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents",
@@ -54,8 +58,7 @@ public class FirebaseRankingManager {
                 rankingData = parseTopScoresResponse(resWrapper.getJSONArray(DOCUMENTS));
             }
         } catch (Exception e) {
-            System.err.println("Error in getTopScores: " + e.getMessage());
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error in getTopScores", e);
         }
         return rankingData;
     }
@@ -157,7 +160,7 @@ public class FirebaseRankingManager {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to calculate user ranking", e);
         }
         return -1; // Not in top 100
     }

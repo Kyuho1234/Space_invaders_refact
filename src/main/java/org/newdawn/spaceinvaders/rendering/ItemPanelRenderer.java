@@ -50,7 +50,10 @@ public class ItemPanelRenderer {
      * Calculate layout metrics for item panel
      */
     private ItemPanelLayout calculateItemPanelLayout(int rows, int canvasH) {
-        int pad = 8, gap = 6, startY = 70, innerPad = 6;
+        int pad = 8;
+        int gap = 6;
+        int startY = 70;
+        int innerPad = 6;
 
         int[] drawWArr = new int[rows];
         int[] drawHArr = new int[rows];

@@ -5,6 +5,7 @@ import org.newdawn.spaceinvaders.ResourceManager;
 import org.newdawn.spaceinvaders.Assets;
 import org.newdawn.spaceinvaders.Sprite;
 
+
 /**
  * An entity representing a shot fired by the player's ship
  * 
@@ -36,7 +37,8 @@ public class ShotEntity extends Entity {
 	 * 
 	 * @param delta The time that has elapsed since last move
 	 */
-	public void move(long delta) {
+	@Override
+    public void move(long delta) {
 		// proceed with normal move
 		super.move(delta);
 		

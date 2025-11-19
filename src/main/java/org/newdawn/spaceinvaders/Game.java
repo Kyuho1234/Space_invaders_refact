@@ -31,7 +31,8 @@ import org.newdawn.spaceinvaders.rendering.ScreenRenderer;
 import org.newdawn.spaceinvaders.game.GameStateManager;
 import org.newdawn.spaceinvaders.game.EntityManager;
 
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 /**
  * The main hook of our game. This class with both act as a manager
  * for the display and central mediator for the game logic.
@@ -48,6 +49,8 @@ import org.newdawn.spaceinvaders.game.EntityManager;
  * @author Kevin Glass
  */
 public class Game extends Canvas {
+	private static final Logger logger = Logger.getLogger(Game.class.getName());
+
 	/** The stragey that allows us to use accelerate page flipping */
 	private transient BufferStrategy strategy;
 	/** True if the game is currently "running", i.e. the game loop is looping */
@@ -337,37 +340,6 @@ public class Game extends Canvas {
 		removeList.add(entity);
 	}
 
-	// public void notifyDeath() {
-	// 	pausePromptActive = false;
-
-	// 	// 1. 최고 점수 등극 메시지 출력을 위해 score 초기화 전에 finalScore에 저장
-	// 	finalScore = score;
-
-	// 	// 2. 게임 종료 시 점수를 포인트로 저장 및 최고 점수 갱신
-	// 	saveScoreAsPoints();
-
-	// 	// 💡 [핵심 추가] 현재 플레이 중이던 스테이지를 maxClearedStage로 저장
-	// 	if (currentStage > maxClearedStage) {
-	// 		maxClearedStage = currentStage;
-	// 		if (firebaseManager != null && firebaseManager.isLoggedIn()) {
-	// 			// ✅ 플레이 중이던 스테이지를 최고 기록으로 저장 (사망했더라도 진행 기록 유지)
-	// 			firebaseManager.saveMaxClearedStage(maxClearedStage-1);
-	// 			System.out.println("DEATH: Saved progress up to Stage " + maxClearedStage);
-	// 		}
-	// 	}
-
-	// 	// 3. 사망 후 Stage Select 화면으로 전환
-	// 	message = "Oh no! They got you, try again?";
-	// 	waitingForKeyPress = false; // 일반 대기 상태 비활성화
-	// 	stageSelectActive = true;
-
-	// 	// 사망 후 커서 위치는 마지막으로 플레이했던 스테이지에 위치
-	// 	selectedStage = maxClearedStage > 0 ? maxClearedStage : 1;
-
-	// 	// 4. 점수/체력 초기화
-	// 	score = 0;
-	// 	playerHealth = playerMaxHealth;
-	// }
 
 	// Game.java: notifyDeath() 메서드 전체 (수정)
 	public void notifyDeath() {
@@ -386,7 +358,8 @@ public class Game extends Canvas {
 				// ✅ 성공적으로 깬 마지막 스테이지 (현재 진행 중인 스테이지의 직전)를 저장
 				//    Stage 3에서 죽었다면 (3-1=2) Stage 2를 저장
 				firebaseManager.saveMaxClearedStage(stateManager.getCurrentStage() - 1);
-				System.out.println("DEATH: Saved *previous* stage " + (stateManager.getCurrentStage() - 1) + " as max.");
+				// {0}: 저장된 스테이지 번호 (현재 스테이지 - 1)
+				logger.log(Level.WARNING, "DEATH: Saved *previous* stage {0} as max.", (stateManager.getCurrentStage() - 1));
 			}
 		}
 
@@ -491,9 +464,11 @@ public class Game extends Canvas {
 			// 4. 최고 점수 달성 플래그 설정 (게임 종료 화면 표시용)
 			this.newHighScoreAchieved = newHigh;
 
-			System.out.println("Score: " + score + " saved as points. Total Points: " + newPoints);
+			// {0}: 이번 판 점수, {1}: 누적된 총 포인트
+			logger.log(Level.INFO, "Score: {0} saved as points. Total Points: {1}", new Object[]{score, newPoints});
 			if (newHigh) {
-				System.out.println("🎉 NEW HIGH SCORE ACHIEVED: " + score);
+				// {0}: 신기록 점수
+				logger.log(Level.INFO, "🎉 NEW HIGH SCORE ACHIEVED: {0}", score);
 			}
 		} else {
 			// 로그인되어 있지 않거나 점수가 0인 경우
