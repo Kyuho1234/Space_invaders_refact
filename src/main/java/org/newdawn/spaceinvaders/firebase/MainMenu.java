@@ -93,6 +93,8 @@ public class MainMenu extends JFrame {
         });
 
         add(mainPanel);
+        pack();  // 컴포넌트 크기 자동 조정
+        setSize(800, 700);  // 크기 재설정
     }
 
     private JButton createMenuButton(String text) {
@@ -100,6 +102,7 @@ public class MainMenu extends JFrame {
         button.setFont(new Font(FONT_ARIAL, Font.BOLD, 20));
         button.setForeground(Color.BLACK);
         button.setBackground(Color.LIGHT_GRAY);
+        button.setOpaque(true);  // 배경색이 확실히 보이도록 설정
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);

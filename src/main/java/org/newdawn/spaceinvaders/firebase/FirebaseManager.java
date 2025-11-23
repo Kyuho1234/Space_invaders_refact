@@ -321,7 +321,7 @@ public final class FirebaseManager {
 
     private JSONObject buildPointsUpdateFields(int points, JSONObject existingFields) {
         JSONObject fields = new JSONObject();
-        fields.put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, String.valueOf(points)));
+        fields.put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, points));
         preserveExistingCoreFields(fields, existingFields);
         preserveUpgradeFields(fields, existingFields);
         return fields;
@@ -914,9 +914,9 @@ public final class FirebaseManager {
     private JSONObject buildUpgradeFields(String upgradeType, int newPoints, int newLevel, JSONObject existingFields) {
         JSONObject fields = new JSONObject();
 
-        // Add core fields
-        fields.put(FIELD_MAX_CLEARED_STAGE, new JSONObject().put(FIELD_INTEGER_VALUE, String.valueOf(getMaxClearedStage())));
-        fields.put(FIELD_HIGHEST_SCORE, new JSONObject().put(FIELD_INTEGER_VALUE, String.valueOf(getHighestScore())));
+        // Add core fields - integerValue must be a number, not a string
+        fields.put(FIELD_MAX_CLEARED_STAGE, new JSONObject().put(FIELD_INTEGER_VALUE, getMaxClearedStage()));
+        fields.put(FIELD_HIGHEST_SCORE, new JSONObject().put(FIELD_INTEGER_VALUE, getHighestScore()));
         fields.put(FIELD_EMAIL, new JSONObject().put(FIELD_STRING_VALUE, email));
 
         // Add updated fields
@@ -945,6 +945,7 @@ public final class FirebaseManager {
         maskBuilder.append("&updateMask.fieldPaths=upgrade_").append(upgradeType);
         maskBuilder.append("&updateMask.fieldPaths=maxClearedStage");
         maskBuilder.append("&updateMask.fieldPaths=highest_score");
+        maskBuilder.append("&updateMask.fieldPaths=email");
         return maskBuilder.toString();
     }
 
