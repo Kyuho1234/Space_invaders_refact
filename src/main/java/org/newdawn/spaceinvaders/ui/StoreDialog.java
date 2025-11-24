@@ -9,12 +9,14 @@ import java.awt.*;
 import java.util.Map;
 import java.net.URL;
 import java.awt.event.ActionEvent;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 /**
  * 상점 UI를 표시하고 아이템을 그리드(격자) 형태로 진열하는 다이얼로그 클래스입니다.
  * 소모품 탭과 영구 업그레이드 탭으로 구성됩니다.
  */
 public class StoreDialog extends JDialog {
+    private static final Logger logger = Logger.getLogger(StoreDialog.class.getName());
 
     private static final String FONT_ARIAL = "Arial";
     private static final String ERROR_TEXT = "Error";
@@ -490,7 +492,8 @@ public class StoreDialog extends JDialog {
                 return new ImageIcon(url);
             }
         }
-        System.err.println("[WARN] StoreDialog: image not found for " + filename);
+        // [WARN] 태그 삭제, 문자열 더하기 삭제 -> 파라미터 {0} 사용
+        logger.log(Level.WARNING, "StoreDialog: image not found for {0}", filename);
         return null;
     }
 }

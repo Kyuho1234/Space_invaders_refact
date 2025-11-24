@@ -21,13 +21,13 @@ public class FirebaseUserManager {
     private static final String PARAM_KEY = "?key=";
 
     private final FirebaseHttpClient httpClient;
-    private final String projectId;
+
     private final String apiKey;
     private final String documentsBase;
 
     public FirebaseUserManager(FirebaseHttpClient httpClient, String projectId, String apiKey) {
         this.httpClient = httpClient;
-        this.projectId = projectId;
+
         this.apiKey = apiKey;
         this.documentsBase = String.format(
             "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents",

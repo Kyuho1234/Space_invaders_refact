@@ -8,7 +8,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import javax.imageio.ImageIO;
 
 /**
@@ -22,7 +23,7 @@ import javax.imageio.ImageIO;
  * @author Kevin Glass
  */
 public class SpriteStore {
-	/** The single instance of this class */
+	private static final Logger logger = Logger.getLogger(SpriteStore.class.getName());	/** The single instance of this class */
 	private static SpriteStore single = new SpriteStore();
 	
 	/**
@@ -35,7 +36,7 @@ public class SpriteStore {
 	}
 	
 	/** The cached sprite map, from reference to sprite instance */
-	private HashMap sprites = new HashMap();
+	private HashMap<String, Sprite> sprites = new HashMap<>();
 	
 	/**
 	 * Retrieve a sprite from the store
@@ -47,7 +48,7 @@ public class SpriteStore {
 		// if we've already got the sprite in the cache
 		// then just return the existing version
 		if (sprites.get(ref) != null) {
-			return (Sprite) sprites.get(ref);
+			return sprites.get(ref);
 		}
 		
 		// otherwise, go away and grab the sprite from the resource
@@ -93,7 +94,9 @@ public class SpriteStore {
 	private void fail(String message) {
 		// we're pretty dramatic here, if a resource isn't available
 		// we dump the message and exit the game
-		System.err.println(message);
+
+		// 변수 'message'의 내용을 심각한 에러로 기록
+		logger.log(Level.SEVERE, "{0}", message);
 		System.exit(0);
 	}
 }

@@ -1,24 +1,22 @@
 package org.newdawn.spaceinvaders.firebase;
 
 import org.newdawn.spaceinvaders.Game;
-
+import org.newdawn.spaceinvaders.settings.SettingsDialog;
 import org.newdawn.spaceinvaders.ui.StoreDialog;
+
 import javax.swing.*;
 import java.awt.*;
-import org.newdawn.spaceinvaders.items.GameItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JFrame;
-import org.newdawn.spaceinvaders.settings.SettingsDialog;
-import org.newdawn.spaceinvaders.firebase.RankingDialog;
-import org.newdawn.spaceinvaders.firebase.RankingDialog;
+import java.awt.event.MouseAdapter;
+
+import java.awt.event.MouseEvent;
 
 /** 메인 메뉴: 로그인/회원가입/랭킹/게임 시작 */
 public class MainMenu extends JFrame {
     private static final String FONT_ARIAL = "Arial";
 
-    private JPanel mainPanel;
-    private JLabel titleLabel;
+    // 2. 불필요한 필드를 제거하고 필요한 것만 남겼습니다.
     private JButton startGameButton;
     private JButton loginButton;
     private JButton rankingButton;
@@ -26,28 +24,28 @@ public class MainMenu extends JFrame {
     private JButton settingsButton;
     private JButton exitButton;
     private JLabel userStatusLabel;
-    private Game currentGame;      // 멤버 변수 선언
 
     public MainMenu() {
-
         initializeUI();
         setupEventHandlers();
         updateUserStatus();
     }
 
-        private void initializeUI() {
+    private void initializeUI() {
         setTitle("Space Invaders - Main Menu");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // 3. WindowConstants.EXIT_ON_CLOSE 사용 (SonarQube 권장)
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setSize(800, 700);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        mainPanel = new JPanel();
+        // 2. mainPanel과 titleLabel을 지역 변수로 변경
+        JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBackground(Color.BLACK);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 90, 40, 90));
 
-        titleLabel = new JLabel("SPACE INVADERS");
+        JLabel titleLabel = new JLabel("SPACE INVADERS");
         titleLabel.setFont(new Font(FONT_ARIAL, Font.BOLD, 48));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -60,7 +58,7 @@ public class MainMenu extends JFrame {
         startGameButton = createMenuButton("Start Game");
         loginButton     = createMenuButton("Login / Register");
         rankingButton   = createMenuButton("Ranking");
-        storeButton = createMenuButton("Store");
+        storeButton     = createMenuButton("Store");
         settingsButton  = createMenuButton("Settings");
         exitButton      = createMenuButton("Exit");
 
@@ -109,69 +107,75 @@ public class MainMenu extends JFrame {
         button.setMaximumSize(new Dimension(300, 50));
         button.setPreferredSize(new Dimension(300, 50));
 
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) { button.setBackground(Color.WHITE); }
-            public void mouseExited (java.awt.event.MouseEvent evt) { button.setBackground(Color.LIGHT_GRAY); }
+        // 1. @Override 어노테이션 추가 (MouseAdapter 사용)
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent evt) {
+                button.setBackground(Color.WHITE);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent evt) {
+                button.setBackground(Color.LIGHT_GRAY);
+            }
         });
         return button;
     }
 
     private void setupEventHandlers() {
-        // 게임 시작
-        startGameButton.addActionListener(e -> startGame());
+        ActionListener menuActionListener = this::handleMenuAction;
 
-        // 로그인 / 로그아웃 / 회원가입
-        loginButton.addActionListener(e -> {
-            if (FirebaseManager.getInstance().isLoggedIn()) {
-                int result = JOptionPane.showConfirmDialog(
-                        this,
-                        "Logged in as: " + FirebaseManager.getInstance().getCurrentUserEmail() + "\nLogout?",
-                        "Logout",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (result == JOptionPane.YES_OPTION) {
-                    FirebaseManager.getInstance().signOut();
-                    updateUserStatus();
-                }
-            } else {
-                LoginDialog dlg = new LoginDialog(this);
-                dlg.setVisible(true);
-                if (dlg.isLoginSuccessful()) {
-                    updateUserStatus();
-                }
-            }
-        });
+        startGameButton.addActionListener(menuActionListener);
+        loginButton.addActionListener(menuActionListener);
+        rankingButton.addActionListener(menuActionListener);
+        storeButton.addActionListener(menuActionListener);
+        settingsButton.addActionListener(menuActionListener);
+        exitButton.addActionListener(menuActionListener);
+    }
 
-        // 랭킹
-        rankingButton.addActionListener(e -> {
-            // 🚀 RankingDialog를 생성하고 표시하는 로직으로 대체
-            // 부모 프레임(MainMenu)을 인수로 전달합니다.
-            RankingDialog rankingDialog = new RankingDialog(MainMenu.this);
-            rankingDialog.setVisible(true);
-        });
+    private void handleMenuAction(ActionEvent e) {
+        Object src = e.getSource();
 
-        //store
-        storeButton.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent e){
-                showStore(); //새로운 메서드 호출
-            }
-        });
-
-
-        // 설정
-        settingsButton.addActionListener(e -> {
+        if (src == startGameButton) {
+            startGame();
+        } else if (src == loginButton) {
+            handleLoginAction();
+        } else if (src == rankingButton) {
+            new RankingDialog(MainMenu.this).setVisible(true);
+        } else if (src == storeButton) {
+            showStore();
+        } else if (src == settingsButton) {
             new SettingsDialog(this).setVisible(true);
-                });
+        } else if (src == exitButton) {
+            System.exit(0);
+        }
+    }
 
-
-        // 종료
-        exitButton.addActionListener(e -> System.exit(0));
+    private void handleLoginAction() {
+        if (FirebaseManager.getInstance().isLoggedIn()) {
+            int result = JOptionPane.showConfirmDialog(
+                    this,
+                    "Logged in as: " + FirebaseManager.getInstance().getCurrentUserEmail() + "\nLogout?",
+                    "Logout",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (result == JOptionPane.YES_OPTION) {
+                FirebaseManager.getInstance().signOut();
+                updateUserStatus();
+            }
+        } else {
+            LoginDialog dlg = new LoginDialog(this);
+            dlg.setVisible(true);
+            if (dlg.isLoginSuccessful()) {
+                updateUserStatus();
+            }
+        }
     }
 
     private void startGame() {
         // 메뉴 숨기고 게임 시작 (게임 루프는 별도 스레드 권장)
         this.setVisible(false);
+        // 2. 불필요한 currentGame 필드 제거하고 지역 변수로 사용
         new Thread(() -> {
             try {
                 Game game = new Game();
@@ -179,7 +183,11 @@ public class MainMenu extends JFrame {
                 game.gameLoop();
             } finally {
                 // 게임 종료 후 메뉴 복귀 (EDT에서)
-                SwingUtilities.invokeLater(() -> MainMenu.this.setVisible(true));
+                SwingUtilities.invokeLater(() -> {
+                    // 기존 MainMenu 인스턴스를 재사용하거나 새로 생성할 수 있음.
+                    // 여기서는 간단히 현재 창을 다시 보이게 함.
+                    this.setVisible(true);
+                });
             }
         }, "GameLoop-Thread").start();
     }
@@ -195,16 +203,10 @@ public class MainMenu extends JFrame {
         }
     }
 
-    private void showStore(){
-        // StoreDialog를 메인 메뉴 창(this)을 부모로 하여 생성하고 표시합니다.
-        // this는 현재 JFrame 인스턴스(SimpleMainMenu)를 나타냅니다.
+    private void showStore() {
         StoreDialog store = new StoreDialog(this);
-
-        // 다이얼로그를 보이게 합니다.
         store.setVisible(true);
     }
-
-
 
     public static void main(String[] args) {
         // 🔹 macOS UI 깨짐 방지 및 DPI 스케일링 문제 해결

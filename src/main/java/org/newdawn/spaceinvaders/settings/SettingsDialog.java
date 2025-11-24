@@ -1,16 +1,8 @@
 package org.newdawn.spaceinvaders.settings; // 본인 패키지 선언
 
-// --- 아래 import 목록을 모두 추가하세요 ---
-import org.newdawn.spaceinvaders.settings.SettingsManager; // SettingsManager import
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.JRadioButton;
-import javax.swing.ButtonGroup;
-import javax.swing.BorderFactory;
-import javax.swing.JOptionPane;
-import java.awt.BorderLayout;
+
+import javax.swing.*;
+import java.awt.*;
 
 // 설정 '창'이므로 JDialog를 상속받습니다.
 public class SettingsDialog extends JDialog {
@@ -38,37 +30,56 @@ public class SettingsDialog extends JDialog {
     ui컴포넌트 생성하고 화면에 배치하는 메소드
      */
 
-    private void initializeUI(){
-    setSize(300,200);
-    setLocationRelativeTo(getParent());
-    setLayout(new BorderLayout());
+    private void initializeUI() {
 
-    //플레이어 선택 패널
-        JPanel playerSelectionPanel= new JPanel();
+        setLocationRelativeTo(getParent());
+        setLayout(new BorderLayout());
+
+        // --- 플레이어 선택 패널 ---
+        JPanel playerSelectionPanel = new JPanel();
         playerSelectionPanel.setBorder(BorderFactory.createTitledBorder("Player Mode"));
+
+
+        playerSelectionPanel.setLayout(new BoxLayout(playerSelectionPanel, BoxLayout.Y_AXIS));
 
         onePlayerRadioButton = new JRadioButton("1 Player");
         twoPlayerRadioButton = new JRadioButton("2 Player");
-        // 라디오버튼중 하나만 선택되도록 묶는 역할
+
         ButtonGroup playerGroup = new ButtonGroup();
         playerGroup.add(onePlayerRadioButton);
         playerGroup.add(twoPlayerRadioButton);
 
-        playerSelectionPanel.add(onePlayerRadioButton);
-        playerSelectionPanel.add(twoPlayerRadioButton);
+        JLabel keyInfoLabel = new JLabel("   (2P Keys: W, A, S, D)");
+        keyInfoLabel.setForeground(Color.GRAY);
 
-// --- 저장/취소 버튼 패널 ---
+        // 왼쪽 정렬 맞추기 (BoxLayout 특성상 필요할 수 있음)
+        onePlayerRadioButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        twoPlayerRadioButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        keyInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        playerSelectionPanel.add(onePlayerRadioButton);
+        playerSelectionPanel.add(Box.createVerticalStrut(5)); // 간격 5px 추가
+        playerSelectionPanel.add(twoPlayerRadioButton);
+        playerSelectionPanel.add(Box.createVerticalStrut(2)); // 간격 2px 추가
+        playerSelectionPanel.add(keyInfoLabel);               // 설명글 추가
+
+        // --- 저장/취소 버튼 패널 ---
         JPanel buttonPanel = new JPanel();
         saveButton = new JButton("Save");
         cancelButton = new JButton("Cancel");
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
 
-        //패널들을 다이얼 로그에 추가
         add(playerSelectionPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
 
+        add(playerSelectionPanel, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
 
+        setSize(400, 350); // 가로 400, 세로 350
+
+
+        setLocationRelativeTo(getParent());
     }
 
     private void loadCurrentSettings(){

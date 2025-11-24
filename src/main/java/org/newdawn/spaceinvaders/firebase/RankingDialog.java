@@ -7,7 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList; // getTopScores의 반환 타입 처리를 위해 추가
+
 
 /**
  * 랭킹 표시 다이얼로그

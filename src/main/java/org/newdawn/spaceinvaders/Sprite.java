@@ -5,7 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Color;
 import java.awt.AlphaComposite;
-import java.awt.image.BufferedImage;
+
 
 /**
  * A sprite to be displayed on the screen. Note that a sprite

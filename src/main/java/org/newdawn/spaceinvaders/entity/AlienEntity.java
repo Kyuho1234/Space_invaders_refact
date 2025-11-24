@@ -4,9 +4,14 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import org.newdawn.spaceinvaders.Game;
+import org.newdawn.spaceinvaders.GameConstants;
 import org.newdawn.spaceinvaders.Sprite;
 import org.newdawn.spaceinvaders.SpriteStore;
 import org.newdawn.spaceinvaders.entity.movement.*;
+import org.newdawn.spaceinvaders.ResourceManager;
+import org.newdawn.spaceinvaders.Assets;
+import org.newdawn.spaceinvaders.entity.Entity; 
+
 
 /**
  * An entity which represents one of our space invader aliens.
@@ -79,7 +84,7 @@ public class AlienEntity extends Entity {
 	 * @param type The type of alien to create
 	 */
 	public AlienEntity(Game game,int x,int y, AlienType type) {
-		super("sprites/alien.gif",x,y);
+		super(ResourceManager.loadImage(Assets.ALIEN), x, y);
 
 		this.game = game;
 		this.originalY = y;
@@ -105,7 +110,7 @@ public class AlienEntity extends Entity {
 			case BASIC:
 				baseHealth = 1;
 				scoreValue = 10;
-				moveSpeed = 75;
+				moveSpeed = GameConstants.BASIC_ALIEN_SPEED;
 				movementType = MOVEMENT_NORMAL;
 				firingProbability = 1.0; // 기본 발사 확률
 				shotCount = 1;
@@ -115,9 +120,9 @@ public class AlienEntity extends Entity {
 			case FAST:
 				baseHealth = 1;
 				scoreValue = 20;
-				moveSpeed = 120;
+				moveSpeed = GameConstants.FAST_ALIEN_SPEED;
 				movementType = MOVEMENT_ZIGZAG;
-				frameDuration = 150; // Faster animation
+				frameDuration = GameConstants.ALIEN_ANIMATION_DURATION_MS; // Faster animation
 				firingProbability = 0.7; // 빠르지만 덜 쏨
 				shotCount = 1;
 				shotSpreadAngle = 0;
@@ -126,7 +131,7 @@ public class AlienEntity extends Entity {
 			case HEAVY:
 				baseHealth = 2;
 				scoreValue = 30;
-				moveSpeed = 50;
+				moveSpeed = GameConstants.HEAVY_ALIEN_SPEED;
 				movementType = MOVEMENT_NORMAL;
 				frameDuration = 400; // Slower animation
 				firingProbability = 1.5; // 느리지만 더 자주 쏨
@@ -189,9 +194,9 @@ public class AlienEntity extends Entity {
 	 */
 	private void setupAnimationFrames() {
 		// Get base sprites
-		Sprite baseSprite = SpriteStore.get().getSprite("sprites/alien.gif");
-		Sprite baseSprite2 = SpriteStore.get().getSprite("sprites/alien2.gif");
-		Sprite baseSprite3 = SpriteStore.get().getSprite("sprites/alien3.gif");
+		Sprite baseSprite = new Sprite(ResourceManager.loadImage(Assets.ALIEN));
+		Sprite baseSprite2 = new Sprite(ResourceManager.loadImage(Assets.ALIEN2));
+		Sprite baseSprite3 = new Sprite(ResourceManager.loadImage(Assets.ALIEN3));
 
 		// Apply color tinting based on alien type
 		Color tintColor = getTintColor();
@@ -256,6 +261,8 @@ public class AlienEntity extends Entity {
 	 *
 	 * @param delta The time that has elapsed since last move
 	 */
+
+	@Override
 	public void move(long delta) {
 		// since the move tells us how much time has passed
 		// by we can use it to drive the animation, however
@@ -284,12 +291,12 @@ public class AlienEntity extends Entity {
 
 		// if we have reached the left hand side of the screen and
 		// are moving left then request a logic update
-		if ((dx < 0) && (x < 10)) {
+		if ((dx < 0) && (x < GameConstants.PLAYER_LEFT_BOUND)) {
 			game.updateLogic();
 		}
 		// and vice vesa, if we have reached the right hand side of
 		// the screen and are moving right, request a logic update
-		if ((dx > 0) && (x > 750)) {
+		if ((dx > 0) && (x > GameConstants.ALIEN_RIGHT_BOUND)) {
 			game.updateLogic();
 		}
 
@@ -297,9 +304,8 @@ public class AlienEntity extends Entity {
 		super.move(delta);
 	}
 
-	/**
-	 * Update the game logic related to aliens
-	 */
+
+	@Override
 	public void doLogic() {
 		// swap over horizontal movement and move down the
 		// screen a bit
@@ -317,7 +323,7 @@ public class AlienEntity extends Entity {
 
 		// if we've reached the bottom of the screen then the player
 		// dies
-		if (y > 570) {
+		if (y > GameConstants.ALIEN_DEATH_LINE) {
 			game.notifyDeath();
 		}
 	}

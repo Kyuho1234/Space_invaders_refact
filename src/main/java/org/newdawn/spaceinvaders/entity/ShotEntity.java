@@ -1,6 +1,10 @@
 package org.newdawn.spaceinvaders.entity;
 
 import org.newdawn.spaceinvaders.Game;
+import org.newdawn.spaceinvaders.ResourceManager;
+import org.newdawn.spaceinvaders.Assets;
+import org.newdawn.spaceinvaders.Sprite;
+
 
 /**
  * An entity representing a shot fired by the player's ship
@@ -19,15 +23,12 @@ public class ShotEntity extends Entity {
 	 * Create a new shot from the player
 	 * 
 	 * @param game The game in which the shot has been created
-	 * @param sprite The sprite representing this shot
 	 * @param x The initial x location of the shot
 	 * @param y The initial y location of the shot
 	 */
-	public ShotEntity(Game game,String sprite,int x,int y) {
-		super(sprite,x,y);
-		
+	public ShotEntity(Game game, int x, int y) {
+		super(ResourceManager.loadImage(Assets.SHOT), x, y);
 		this.game = game;
-		
 		dy = moveSpeed;
 	}
 
@@ -36,7 +37,8 @@ public class ShotEntity extends Entity {
 	 * 
 	 * @param delta The time that has elapsed since last move
 	 */
-	public void move(long delta) {
+	@Override
+    public void move(long delta) {
 		// proceed with normal move
 		super.move(delta);
 		

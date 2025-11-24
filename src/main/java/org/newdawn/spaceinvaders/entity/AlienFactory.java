@@ -1,6 +1,9 @@
 package org.newdawn.spaceinvaders.entity;
 
 import org.newdawn.spaceinvaders.Game;
+import org.newdawn.spaceinvaders.ResourceManager;
+import org.newdawn.spaceinvaders.Assets;
+import org.newdawn.spaceinvaders.Sprite;
 
 /**
  * Factory Pattern 적용
@@ -19,6 +22,7 @@ public class AlienFactory {
     public AlienEntity createAlien(int stage, int row, int col, int x, int y) {
         AlienEntity.AlienType type = determineAlienType(stage, row, col);
         AlienEntity alien = new AlienEntity(game, x, y, type);
+        alien.setSprite(new Sprite(ResourceManager.loadImage(Assets.ALIEN)));
         alien.setStageMultiplier(stage);
         return alien;
     }
@@ -28,6 +32,7 @@ public class AlienFactory {
      */
     public AlienEntity createBoss(int x, int y, int stage) {
         AlienEntity boss = new AlienEntity(game, x, y, AlienEntity.AlienType.BOSS);
+        boss.setSprite(new Sprite(ResourceManager.loadImage(Assets.ALIEN_BOSS)));
         boss.setStageMultiplier(stage);
         return boss;
     }

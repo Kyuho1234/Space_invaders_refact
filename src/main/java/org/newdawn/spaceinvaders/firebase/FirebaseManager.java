@@ -11,7 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public final class FirebaseManager {
 
@@ -56,7 +57,6 @@ public final class FirebaseManager {
     private String projectId;
     private String databaseId = "(default)";
     private final String firestoreApiRoot = "https://firestore.googleapis.com/v1";
-    private static final FirebaseManager INSTANCE = new FirebaseManager();
 
     private String idToken;
     private String refreshToken;
@@ -64,9 +64,18 @@ public final class FirebaseManager {
     private String email;
     private long expiresAtMs;
 
+    private static final Logger logger = Logger.getLogger(FirebaseManager.class.getName());
+
     private FirebaseManager() {}
 
-    public static FirebaseManager getInstance() { return INSTANCE; }
+    // Lazy-loaded Singleton Holder
+    private static class Holder {
+        private static final FirebaseManager INSTANCE = new FirebaseManager();
+    }
+
+    public static FirebaseManager getInstance() {
+        return Holder.INSTANCE;
+    }
 
     private String documentsBase() {
         if (projectId == null || databaseId == null) return null;
@@ -156,15 +165,21 @@ public final class FirebaseManager {
 
     private void logConfigStatus() {
         if (this.apiKey == null || this.projectId == null) {
-            System.err.println("[FirebaseManager] Missing Firebase configuration. Set FIREBASE_API_KEY and FIREBASE_PROJECT_ID.");
+            // ✅ System.err 대신 logger.severe (또는 warning) 사용
+            logger.log(Level.SEVERE, "Missing Firebase configuration. Set FIREBASE_API_KEY...");
         } else {
-            System.out.println("[FirebaseManager] Loaded Firebase projectId=" + this.projectId + ", databaseId=" + this.databaseId);
+            // ✅ System.out 대신 logger.info 사용
+            logger.log(Level.INFO, "Loaded Firebase projectId={0}, databaseId={1}",
+                    new Object[]{this.projectId, this.databaseId});
         }
     }
 
     public void initialize() {
         loadConfigIfNeeded();
-        System.out.println("Firebase Manager Initialized. projectId=" + projectId + ", databaseId=" + databaseId);
+
+        // {0}, {1}은 뒤에 오는 변수들이 들어갈 자리입니다.
+        logger.log(Level.INFO, "Firebase Manager Initialized. projectId={0}, databaseId={1}",
+                new Object[]{projectId, databaseId});
     }
 
     public synchronized boolean isLoggedIn() { return idToken != null; }
@@ -248,7 +263,7 @@ public final class FirebaseManager {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[FirebaseManager] ensureUserDocExists failed: " + e.getMessage());
+            logger.log(Level.SEVERE, "[FirebaseManager] ensureUserDocExists failed", e);
         }
     }
 
@@ -427,7 +442,8 @@ public final class FirebaseManager {
 
         // 1. 포인트 차감 시도 (spendPoints는 이미 updateUserPoints를 사용하여 원자적으로 처리)
         if (!spendPoints(price)) {
-            System.err.println("포인트가 부족하거나 차감에 실패했습니다.");
+            logger.log(Level.SEVERE, "포인트가 부족하거나 차감에 실패했습니다.");
+
             return false;
         }
         
@@ -452,14 +468,14 @@ public final class FirebaseManager {
             } else {
                 // 실패: 아이템 생성 실패 (포인트는 이미 차감됨!)
                 // ⚠️ 롤백 처리: 실패 시 차감된 포인트를 다시 돌려줘야 합니다.
-                System.err.println("[Firebase] 아이템 생성에 실패했습니다. 포인트 롤백을 시도합니다.");
+                logger.log(Level.SEVERE, "[Firebase] 아이템 생성에 실패했습니다. 포인트 롤백을 시도합니다.");
                 addPoints(price); // 차감했던 포인트를 다시 추가 (롤백)
                 return false;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            // 예외 발생 시에도 롤백 처리
-            System.err.println("[Firebase] 아이템 생성 중 예외 발생. 포인트 롤백을 시도합니다.");
+        }catch (Exception e) {
+            logger.log(Level.SEVERE, "[Firebase] 아이템 생성 중 예외 발생. 포인트 롤백을 시도합니다.", e);
+
+            // 2. 롤백 및 실패 처리 로직은 그대로 유지
             addPoints(price);
             return false;
         }
@@ -519,12 +535,13 @@ public final class FirebaseManager {
     public boolean deleteItemByDocumentName(String docName) {
         if (!isLoggedIn()) return false;
         if (docName == null || docName.isEmpty()) {
-            System.err.println("[Firebase] Document name for deletion is null or empty.");
+            logger.info("[Firebase] Document name for deletion is null or empty.");
+
             return false;
         }
         
         // 🚀 [수정된 부분]: 전달받은 문서 이름으로 바로 DELETE 요청
-        System.out.println("[Firebase] Attempting to DELETE document by name: " + docName);
+        logger.log(Level.INFO, "[Firebase] Attempting to DELETE document by name: ", docName);
         
         try {
             String deleteUrl = firestoreApiRoot + "/" + docName + PARAM_KEY + apiKey;
@@ -547,27 +564,32 @@ public final class FirebaseManager {
         // getPurchasedItemDetails()를 사용하여 모든 아이템 인스턴스를 가져옵니다.
         List<Map<String, String>> itemDetails = getPurchasedItemDetails();
 
-        // 🚀 [수정된 부분]: 문서 이름이 아닌 itemId를 기준으로 찾습니다.
+        logger.log(Level.INFO, "[Firebase] Attempting to delete item with ID: {0}", itemId);
+        logger.log(Level.INFO, "[Firebase] Total items in database: {0}", itemDetails.size());
+
+        // 🚀 ItemManager가 이미 Firebase ID(DUAL_FIRE 등)를 사용하므로 직접 매칭
         String docNameToDelete = null;
-        
+
         // 1. 메모리에서 원하는 itemId를 가진 첫 번째 문서 (가장 먼저 조회된 = FIFO)를 찾습니다.
         // 대소문자를 무시하고 비교합니다.
         for (Map<String, String> detail : itemDetails) {
             String storedItemId = detail.get(FIELD_ITEM_ID);
+            logger.log(Level.INFO, "[Firebase] Checking stored item: {0}", storedItemId);
+
             if (storedItemId != null && storedItemId.equalsIgnoreCase(itemId)) {
                 docNameToDelete = detail.get("name"); // 고유 문서 이름 획득
+                logger.log(Level.INFO, "[Firebase] Match found! Document name: {0}", docNameToDelete);
                 break;
             }
         }
 
         if (docNameToDelete == null) {
-            System.err.println("[Firebase] Item not found to delete: " + itemId);
+            logger.log(Level.WARNING, "[Firebase] Item not found to delete: {0}", itemId);
             return false;
         }
 
         // 2. 찾은 고유 문서 이름으로 삭제를 요청합니다.
-        return deleteItemByDocumentName(docNameToDelete); 
-        // 내부적으로 deleteItemByDocumentName(String) 메소드를 사용하도록 변경하여 로직 통합
+        return deleteItemByDocumentName(docNameToDelete);
     }
 
     // FirebaseManager.java (아래 두 메서드를 추가합니다)
@@ -640,7 +662,8 @@ public final class FirebaseManager {
             // 에러 스트림을 읽어서 출력 (선택 사항)
             InputStream is = conn.getErrorStream();
             String text = (is != null) ? readAll(is) : conn.getResponseMessage();
-            System.err.println("DELETE error(" + code + "): " + text);
+            // {0}: 상태 코드, {1}: 응답 본문
+            logger.log(Level.WARNING, "DELETE error({0}): {1}", new Object[]{code, text});
             return false;
         }
     }
@@ -661,9 +684,13 @@ public final class FirebaseManager {
             try {
                 JSONObject err = new JSONObject(text);
                 String msg = extractFirebaseError(err);
-                System.err.println("Firebase error(" + code + "): " + msg);
+                // 파싱 성공 시: 깔끔하게 정리된 Firebase 에러 메시지 기록
+                logger.log(Level.WARNING, "Firebase error({0}): {1}", new Object[]{code, msg});
+
             } catch (Exception ignore) {
-                System.err.println("HTTP " + code + ": " + text);
+                // 파싱 실패 시: 그냥 원본 HTTP 텍스트 기록
+                // (여기서 ignore 예외는 로깅 시스템의 오류가 아니라, 단순히 텍스트가 JSON이 아니라는 뜻이므로 스택 트레이스를 남길 필요는 없습니다)
+                logger.log(Level.WARNING, "HTTP error {0}: {1}", new Object[]{code, text});
             }
             return null;
         }
@@ -708,7 +735,7 @@ public final class FirebaseManager {
         if (code >= 200 && code < 300) {
             return new JSONObject(text);
         } else {
-            System.err.println("GET error(" + code + "): " + text);
+            logger.log(Level.WARNING, "GET error({0}): {1}", new Object[]{code, text});
             return null;
         }
     }
@@ -731,10 +758,12 @@ public final class FirebaseManager {
         if (code >= 200 && code < 300) {
             return new JSONObject(text);
         } else {
-            System.err.println("PATCH (override) error(" + code + "): " + text);
-            return null;
+                logger.log(Level.WARNING, "GET error({0}): {1}", new Object[]{code, text});
+                return null;
+            }
+
         }
-    }
+
 
     private JSONObject postJsonFirestore(String urlStr, JSONObject body) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
@@ -752,7 +781,7 @@ public final class FirebaseManager {
         if (code >= 200 && code < 300) {
             return new JSONObject(text);
         } else {
-            System.err.println("POST error(" + code + "): " + text);
+            logger.log(Level.WARNING, "Post error({0}): {1}", new Object[]{code, text});
             return null;
         }
     }
@@ -775,7 +804,7 @@ public final class FirebaseManager {
         if (code >= 200 && code < 300) {
             return new JSONObject(text);
         } else {
-            System.err.println("COMMIT error(" + code + "): " + text);
+            logger.log(Level.WARNING, "COMMIT error({0}): {1}", new Object[]{code, text});
             return null;
         }
     }
@@ -817,63 +846,6 @@ public final class FirebaseManager {
         return upgrades;
     }
 
-    /**
-     * Purchase a permanent upgrade level
-     * @param upgradeType UPGRADE_ATTACK, UPGRADE_HEALTH, or UPGRADE_SPEED
-     * @param cost Points cost for this upgrade
-     * @return true if purchase successful, false otherwise
-     */
-    // public boolean purchaseUpgrade(String upgradeType, int cost) {
-    //     if (!isLoggedIn()) return false;
-    //     if (documentsBase() == null) return false;
-
-    //     // Check if user has enough points
-    //     int currentPoints = getUserPoints();
-    //     if (currentPoints < cost) {
-    //         System.out.println("Not enough points. Have: " + currentPoints + ", Need: " + cost);
-    //         return false;
-    //     }
-
-    //     try {
-    //         // Get current upgrade level
-    //         int currentLevel = getUpgradeLevel(upgradeType);
-    //         int newLevel = currentLevel + 1;
-
-    //         // Deduct points and update upgrade level atomically
-    //         int newPoints = currentPoints - cost;
-    //         String fieldName = UPGRADE_PREFIX + upgradeType;
-
-    //         JSONObject fields = new JSONObject()
-    //                 .put(FIELD_EMAIL, new JSONObject().put(FIELD_STRING_VALUE, email))
-    //                 .put(FIELD_POINTS, new JSONObject().put(FIELD_INTEGER_VALUE, newPoints))
-    //                 .put(fieldName, new JSONObject().put(FIELD_INTEGER_VALUE, newLevel));
-
-    //         // Also preserve existing upgrade fields
-    //         String url = documentsBase() + PATH_USERS + localId + PARAM_KEY + apiKey;
-    //         JSONObject existing = getJson(url);
-    //         if (existing != null && existing.has(FIELD_FIELDS)) {
-    //             JSONObject existingFields = existing.getJSONObject(FIELD_FIELDS);
-    //             // Preserve other upgrade fields
-    //             for (String type : new String[]{UPGRADE_ATTACK, UPGRADE_HEALTH, UPGRADE_SPEED}) {
-    //                 String fn = UPGRADE_PREFIX + type;
-    //                 if (!fn.equals(fieldName) && existingFields.has(fn)) {
-    //                     fields.put(fn, existingFields.getJSONObject(fn));
-    //                 }
-    //             }
-    //         }
-
-    //         JSONObject body = new JSONObject().put(FIELD_FIELDS, fields);
-    //         JSONObject res = patchJson(url, body);
-
-    //         if (res != null) {
-    //             System.out.println("Successfully purchased " + upgradeType + " upgrade to level " + newLevel);
-    //             return true;
-    //         }
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //     }
-    //     return false;
-    // }
 
     // FirebaseManager.java: purchaseUpgrade(String upgradeType, int cost) 메서드 수정
 
@@ -905,7 +877,7 @@ public final class FirebaseManager {
 
         int currentPoints = getUserPoints();
         if (currentPoints < cost) {
-            System.out.println("Not enough points. Have: " + currentPoints + ", Need: " + cost);
+            logger.log(Level.INFO, "Not enough points. Have: {0}, Need: {1}", new Object[]{currentPoints, cost});
             return false;
         }
         return true;
@@ -954,7 +926,8 @@ public final class FirebaseManager {
         JSONObject res = patchJson(patchUrl, body);
 
         if (res != null) {
-            System.out.println("Successfully purchased " + upgradeType + " upgrade to level " + newLevel);
+// {0}: 업그레이드 종류, {1}: 새로운 레벨
+            logger.log(Level.INFO, "Successfully purchased {0} upgrade to level {1}", new Object[]{upgradeType, newLevel});
             return true;
         }
         return false;
@@ -1014,9 +987,10 @@ public final class FirebaseManager {
             if (resWrapper != null && resWrapper.has(FIELD_DOCUMENTS)) {
                 rankingData = parseTopScoresResponse(resWrapper.getJSONArray(FIELD_DOCUMENTS));
             }
-        } catch (Exception e) {
-            System.err.println("Error in getTopScores: " + e.getMessage());
-            e.printStackTrace();
+        }catch (Exception e) {
+            // 메시지와 예외 객체(e)를 함께 전달 (Level.SEVERE)
+            // 로거가 "Error in getTopScores" 메시지와 함께 스택 트레이스까지 자동으로 기록
+            logger.log(Level.SEVERE, "Error in getTopScores", e);
         }
         return rankingData;
     }
@@ -1116,7 +1090,7 @@ public final class FirebaseManager {
                  return new JSONObject("{\"documents\": []}");
             }
         } else {
-            System.err.println("RUN QUERY error(" + code + "): " + text);
+            logger.log(Level.WARNING, "RUN QUERY error({0}): {1}", new Object[]{code, text});
             return null;
         }
     }
@@ -1131,7 +1105,7 @@ public final class FirebaseManager {
 
     public void saveMaxClearedStage(int stage) {
         if (!isLoggedIn()) {
-            System.err.println("Error: Cannot save stage. User is not logged in.");
+            logger.info("Error: Cannot save stage. User is not logged in.");
             return;
         }
 
@@ -1153,13 +1127,14 @@ public final class FirebaseManager {
             JSONObject res = patchJson(updateUrl, body); // ✅ 이 메서드는 X-HTTP-Method-Override를 사용합니다.
             
             if (res != null) {
-                System.out.println("Max cleared stage saved: Stage " + stage);
+                logger.log(Level.INFO, "Max cleared stage saved: Stage ", stage);
             } else {
-                System.err.println("Max cleared stage FAILED to save.");
+                logger.info("Max cleared stage FAILED to save.");
             }
-        } catch (Exception e) {
-            System.err.println("Error saving max cleared stage: " + e.getMessage());
-            e.printStackTrace();
+        }catch (Exception e) {
+            // ✅ Level.SEVERE 사용
+            // 메시지와 함께 'e'를 넘기면, 로거가 에러 메시지와 스택 트레이스를 모두 기록합니다.
+            logger.log(Level.SEVERE, "Error saving max cleared stage", e);
         }
     }
 
@@ -1183,7 +1158,7 @@ public final class FirebaseManager {
             
             if (json == null) {
                 // 문서가 없거나 오류가 발생하면 0을 반환
-                System.out.println("User document not found or error loading data. Returning 0.");
+                logger.info("User document not found or error loading data. Returning 0.");
                 return 0;
             }
 
@@ -1197,8 +1172,9 @@ public final class FirebaseManager {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error loading max cleared stage: " + e.getMessage());
-            e.printStackTrace();
+            // ✅ Level.SEVERE 사용
+            // 메시지와 함께 'e'를 넘기면, 로거가 에러 메시지와 스택 트레이스를 모두 기록합니다.
+            logger.log(Level.SEVERE, "Error saving max cleared stage", e);
         }
         
         // 기본값: 기록이 없으면 0 반환
